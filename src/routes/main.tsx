@@ -4,6 +4,7 @@ import {
   CustomersPage,
   TrailersPage,
   AgreementsPage,
+  PaymentPage,
 } from "@/features";
 
 export const mainRoutes = [
@@ -26,5 +27,9 @@ export const mainRoutes = [
   {
     path: "/agreements",
     element: <AgreementsPage />,
-  }
+  },
+  {
+    path: "/payments",
+    element: <PaymentPage />,
+  },
 ];
