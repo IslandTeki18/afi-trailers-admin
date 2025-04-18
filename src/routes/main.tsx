@@ -1,4 +1,10 @@
-import { BookingPage, DashboardPage, CustomersPage } from "@/features";
+import {
+  BookingPage,
+  DashboardPage,
+  CustomersPage,
+  TrailersPage,
+  AgreementsPage,
+} from "@/features";
 
 export const mainRoutes = [
   {
@@ -12,5 +18,13 @@ export const mainRoutes = [
   {
     path: "/customers",
     element: <CustomersPage />,
+  },
+  {
+    path: "/trailers",
+    element: <TrailersPage />,
+  },
+  {
+    path: "/agreements",
+    element: <AgreementsPage />,
   }
 ];
