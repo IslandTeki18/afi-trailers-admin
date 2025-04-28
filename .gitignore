@@ -1,7 +1,6 @@
 # dependencies
 node_modules/
-.pnp.js
-.parcel-cache
+.parcel-cache/
 dist/
 
 # testing

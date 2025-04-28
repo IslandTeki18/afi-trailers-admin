@@ -114,29 +114,11 @@ const Layout = () => {
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Sidenav takes up the left portion */}
-      <div className="hidden lg:block lg:w-64">
-        <Sidenav navigation={sideNavItems} teams={teams} variant="primary" />
-      </div>
-
-      {/* Main content area */}
-      <div className="flex flex-1 flex-col">
-        {/* Navbar at the top */}
-        <Navbar
-          navigation={navItems}
-          userNavigation={userNavigation}
-          user={user}
-          logo="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-          variant="primary"
-        />
-
-        {/* Page content */}
-        <main className="flex-1 p-6">
+      <div className="lg:block lg:w-64">
+        <Sidenav navigation={sideNavItems} teams={teams} variant="primary">
           <Outlet />
-        </main>
+        </Sidenav>
       </div>
-    </div>
   );
 };
 

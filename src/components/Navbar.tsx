@@ -125,7 +125,7 @@ export const Navbar = ({
             <div className="shrink-0">
               <img className="h-8 w-auto" src={logo} alt="Company logo" />
             </div>
-            <div className="hidden sm:ml-6 sm:block">
+            <div className="hidden sm:ml-6 lg:block">
               <div className="flex space-x-4">
                 {navigation.map((item) => (
                   <NavLink
