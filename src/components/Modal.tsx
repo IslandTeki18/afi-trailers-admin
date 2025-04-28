@@ -91,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({
       />
 
       <div
-        className="fixed inset-0 z-10 w-screen overflow-y-auto"
+        className="py-4 fixed inset-0 z-10 w-screen overflow-y-auto"
         onClick={handleBackdropClick}
       >
         <div
@@ -99,7 +99,7 @@ export const Modal: React.FC<ModalProps> = ({
           onClick={handleBackdropClick}
         >
           <div
-            className={`py-4 relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all duration-300 ease-out
+            className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all duration-300 ease-out
               ${
                 isClosing
                   ? "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
