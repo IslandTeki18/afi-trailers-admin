@@ -2,9 +2,36 @@ import { TrailerList } from "../components/TrailerList";
 import { Button } from "../../../components/Button";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { TrailerForm } from "../components/TrailerForm";
+import { Trailer } from "../types/trailer.types";
 
 export const TrailersPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTrailer, setSelectedTrailer] =
+    useState<Partial<Trailer> | null>(null);
+
+  const handleAddTrailer = (trailerData: Partial<Trailer>) => {
+    // Here you would typically call an API to create a new trailer
+    console.log("Adding new trailer:", trailerData);
+
+    // Close the modal and reset form
+    setIsAddModalOpen(false);
+  };
+
+  const handleEditTrailer = (trailerData: Partial<Trailer>) => {
+    // Here you would typically call an API to update the trailer
+    console.log("Updating trailer:", trailerData);
+
+    // Close the modal and reset form
+    setIsEditModalOpen(false);
+    setSelectedTrailer(null);
+  };
+
+  const handleEditClick = (trailer: Trailer) => {
+    setSelectedTrailer(trailer);
+    setIsEditModalOpen(true);
+  };
 
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
@@ -24,29 +51,27 @@ export const TrailersPage = () => {
       </div>
 
       <div className="mt-4 bg-white rounded-lg shadow">
-        <TrailerList />
+        <TrailerList onEditClick={handleEditClick} />
       </div>
 
-      {/* Add Trailer Modal would be implemented here */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
-            <h2 className="text-xl font-semibold mb-4">Add New Trailer</h2>
-            <p className="text-gray-500 mb-6">
-              This would be where a form for adding a new trailer would appear.
-            </p>
-            <div className="flex justify-end">
-              <Button
-                variant="secondary"
-                className="mr-2"
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button variant="primary">Add Trailer</Button>
-            </div>
-          </div>
-        </div>
+      <TrailerForm
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddTrailer}
+        isEditing={false}
+      />
+
+      {selectedTrailer && (
+        <TrailerForm
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedTrailer(null);
+          }}
+          onSubmit={handleEditTrailer}
+          initialData={selectedTrailer}
+          isEditing={true}
+        />
       )}
     </div>
   );

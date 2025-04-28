@@ -14,6 +14,7 @@ type TableProps = {
   addButtonText?: string;
   onAdd?: () => void;
   onEdit?: (item: any) => void;
+  onView?: (item: any) => void;
   variant?: "primary" | "secondary" | "accent" | "error" | "transparent";
 };
 
@@ -25,6 +26,7 @@ export function Table({
   addButtonText,
   onAdd,
   onEdit,
+  onView,
   variant = "transparent",
 }: TableProps) {
   const variantClasses = {
@@ -159,40 +161,61 @@ export function Table({
                     {columns.map((column, colIndex) => {
                       const isFirstColumn = colIndex === 0;
 
-                      return column.isAction ? (
-                        <td
-                          key={column.accessor}
-                          className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0"
-                        >
-                          {onEdit && (
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                onEdit(item);
-                              }}
-                              className={variantClasses[variant].actionLink}
-                            >
-                              Edit
-                              <span className="sr-only">
-                                , {String(item[columns[0].accessor])}
-                              </span>
-                            </a>
-                          )}
-                        </td>
-                      ) : (
-                        <td
-                          key={column.accessor}
-                          className={`whitespace-nowrap ${
-                            isFirstColumn
-                              ? "py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0"
-                              : "px-3 py-4 text-sm " +
-                                variantClasses[variant].cell
-                          }`}
-                        >
-                          {String(item[column.accessor])}
-                        </td>
-                      );
+                      if (column.isAction) {
+                        return (
+                          <td
+                            key={column.accessor}
+                            className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0"
+                          >
+                            <div className="flex justify-end space-x-3">
+                              {onView && (
+                                <a
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    onView(item);
+                                  }}
+                                  className={variantClasses[variant].actionLink}
+                                >
+                                  View
+                                  <span className="sr-only">
+                                    , {String(item[columns[0].accessor])}
+                                  </span>
+                                </a>
+                              )}
+                              {onEdit && (
+                                <a
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    onEdit(item);
+                                  }}
+                                  className={variantClasses[variant].actionLink}
+                                >
+                                  Edit
+                                  <span className="sr-only">
+                                    , {String(item[columns[0].accessor])}
+                                  </span>
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      } else {
+                        return (
+                          <td
+                            key={column.accessor}
+                            className={`whitespace-nowrap ${
+                              isFirstColumn
+                                ? "py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0"
+                                : "px-3 py-4 text-sm " +
+                                  variantClasses[variant].cell
+                            }`}
+                          >
+                            {String(item[column.accessor])}
+                          </td>
+                        );
+                      }
                     })}
                   </tr>
                 ))}
