@@ -1,4 +1,4 @@
-export * from "./bookings";
+export * from "./auth/bookings";
 export * from "./dashboard";
 export * from "./auth";
 export * from "./customers";
