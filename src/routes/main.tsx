@@ -17,10 +17,12 @@ import {
   DocumentTextIcon,
   CreditCardIcon,
 } from "@heroicons/react/24/outline";
+import { useAuthContext } from "@/features/auth/context/AuthProvider";
 
 // Layout component that incorporates Sidenav and Navbar
-const Layout = () => {
+const MainLayout = () => {
   const location = useLocation();
+  const { user} = useAuthContext();
 
   // Navigation items with icons for Sidenav
   const sideNavItems = [
@@ -29,38 +31,56 @@ const Layout = () => {
       href: "/",
       icon: HomeIcon,
       current: location.pathname === "/",
+      roles: ["admin", "staff"],
     },
     {
       name: "Bookings",
       href: "/bookings",
       icon: BookOpenIcon,
       current: location.pathname === "/bookings",
+      roles: ["admin", "staff"],
     },
     {
       name: "Customers",
       href: "/customers",
       icon: UserGroupIcon,
       current: location.pathname === "/customers",
+      roles: ["admin", "staff"],
     },
     {
       name: "Trailers",
       href: "/trailers",
       icon: TruckIcon,
       current: location.pathname === "/trailers",
+      roles: ["admin", "staff"],
     },
     {
       name: "Agreements",
       href: "/agreements",
       icon: DocumentTextIcon,
       current: location.pathname === "/agreements",
+      roles: ["admin", "staff"],
     },
     {
       name: "Payments",
       href: "/payments",
       icon: CreditCardIcon,
       current: location.pathname === "/payments",
+      roles: ["admin"],
+    },
+    {
+      name: "Reports",
+      href: "/reports",
+      icon: DocumentTextIcon,
+      current: location.pathname === "/reports",
+      roles: ["admin"],
     },
   ];
+
+  // Filter navigation items based on user role
+  const roleBasedNavigation = sideNavItems.filter(
+    (item) => user && item.roles.includes(user.role)
+  );
 
   // Teams for Sidenav
   const teams = [
@@ -68,64 +88,19 @@ const Layout = () => {
     { name: "Support Team", href: "#", initial: "S", current: false },
   ];
 
-  // Navigation items for Navbar
-  const navItems = [
-    { name: "Dashboard", to: "/", current: location.pathname === "/" },
-    {
-      name: "Bookings",
-      to: "/bookings",
-      current: location.pathname === "/bookings",
-    },
-    {
-      name: "Customers",
-      to: "/customers",
-      current: location.pathname === "/customers",
-    },
-    {
-      name: "Trailers",
-      to: "/trailers",
-      current: location.pathname === "/trailers",
-    },
-    {
-      name: "Agreements",
-      to: "/agreements",
-      current: location.pathname === "/agreements",
-    },
-    {
-      name: "Payments",
-      to: "/payments",
-      current: location.pathname === "/payments",
-    },
-  ];
-
-  // User navigation for Navbar
-  const userNavigation = [
-    { name: "Your Profile", to: "/profile" },
-    { name: "Settings", to: "/settings" },
-    { name: "Sign out", to: "/signout" },
-  ];
-
-  // Mock user data
-  const user = {
-    name: "Admin User",
-    email: "admin@afitrailers.com",
-    imageUrl:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-  };
-
   return (
-      <div className="lg:block lg:w-64">
-        <Sidenav navigation={sideNavItems} teams={teams} variant="primary">
-          <Outlet />
-        </Sidenav>
-      </div>
+    <div className="lg:block lg:w-64">
+      <Sidenav navigation={roleBasedNavigation} teams={teams} variant="primary">
+        <Outlet />
+      </Sidenav>
+    </div>
   );
 };
 
 export const mainRoutes = [
   {
     path: "/",
-    element: <Layout />,
+    element: <MainLayout />,
     children: [
       {
         path: "/",
