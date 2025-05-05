@@ -8,7 +8,6 @@ import {
   PaymentPage,
 } from "@/features";
 import { Sidenav } from "@/components/Sidenav";
-import { Navbar } from "@/components/Navbar";
 import {
   HomeIcon,
   BookOpenIcon,
@@ -18,11 +17,12 @@ import {
   CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthContext } from "@/features/auth/context/AuthProvider";
+import { LoginPage, RoleGuard } from "@/features/auth";
 
 // Layout component that incorporates Sidenav and Navbar
 const MainLayout = () => {
   const location = useLocation();
-  const { user} = useAuthContext();
+  const { user } = useAuthContext();
 
   // Navigation items with icons for Sidenav
   const sideNavItems = [
@@ -105,7 +105,12 @@ export const mainRoutes = [
       {
         path: "/",
         index: true,
-        element: <DashboardPage />,
+        element: (
+          <RoleGuard
+            allowedRoles={["admin", "staff"]}
+            element={<DashboardPage />}
+          />
+        ),
       },
       {
         path: "/bookings",
@@ -128,5 +133,9 @@ export const mainRoutes = [
         element: <PaymentPage />,
       },
     ],
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
   },
 ];

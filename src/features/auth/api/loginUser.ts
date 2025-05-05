@@ -1,5 +1,5 @@
 import { User } from "../types/auth.types";
-import { axiosInstance } from "../../../libs/axios";
+import { axiosInstance } from "@/libs/axios";
 
 interface LoginCredentials {
   email: string;
@@ -21,11 +21,9 @@ export const loginUser = async (
       credentials
     );
 
-    // Store token in localStorage if needed
     if (response.data.token) {
       localStorage.setItem("auth_token", response.data.token);
 
-      // Add token to axios default headers for subsequent requests
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${response.data.token}`;
@@ -33,7 +31,7 @@ export const loginUser = async (
 
     return response.data;
   } catch (error) {
-    console.error("Login error:", error);
+    console.log("Login error:", error);
     throw error;
   }
 };

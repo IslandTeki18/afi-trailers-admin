@@ -26,7 +26,7 @@ export const Button: React.FC<ButtonProps> = ({
     large: "px-6 py-3 text-lg",
   };
 
-  const baseClasses = `rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-300 ${buttonSizeClasses[size]}`;
+  const baseClasses = `rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-300 ${buttonSizeClasses[size]} disabled:opacity-50 disabled:cursor-not-allowed`;
 
   const variantClasses = {
     primary:
