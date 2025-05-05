@@ -1,26 +1,26 @@
 import { User } from "../types/auth.types";
+import { axiosInstance } from "../../../libs/axios";
 
 export const fetchSession = async (): Promise<User> => {
   const token = localStorage.getItem("auth_token");
+  if (!token) {
+    throw new Error("No token found in localStorage");
+  }
 
   try {
-    const response = await fetch(
-      `${process.env.REACT_ENV_API_URL}/api/v1/users/session`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: "include",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Session invalid or expired");
+    // Set token in headers if it exists
+    if (token) {
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${token}`;
     }
 
-    return await response.json();
+    const response = await axiosInstance.get<User>("/v1/users/session", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
   } catch (error) {
     console.error("Session fetch error:", error);
     throw error;

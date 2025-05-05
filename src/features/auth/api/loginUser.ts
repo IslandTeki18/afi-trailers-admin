@@ -1,4 +1,5 @@
 import { User } from "../types/auth.types";
+import { axiosInstance } from "../../../libs/axios";
 
 interface LoginCredentials {
   email: string;
@@ -15,30 +16,22 @@ export const loginUser = async (
   };
 
   try {
-    const response = await fetch(
-      `${process.env.REACT_ENV_API_URL}/api/v1/users/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-        credentials: "include",
-      }
+    const response = await axiosInstance.post<User>(
+      "/v1/users/login",
+      credentials
     );
 
-    if (!response.ok) {
-      throw new Error(`Login failed: ${response.statusText}`);
+    // Store token in localStorage if needed
+    if (response.data.token) {
+      localStorage.setItem("auth_token", response.data.token);
+
+      // Add token to axios default headers for subsequent requests
+      axiosInstance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${response.data.token}`;
     }
 
-    const userData: User = await response.json();
-
-    // Store token in localStorage or secure cookie if needed
-    if (userData.token) {
-      localStorage.setItem("auth_token", userData.token);
-    }
-
-    return userData;
+    return response.data;
   } catch (error) {
     console.error("Login error:", error);
     throw error;

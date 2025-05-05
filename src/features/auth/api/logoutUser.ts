@@ -1,22 +1,14 @@
+import { axiosInstance } from "../../../libs/axios";
+
 export const logoutUser = async (): Promise<void> => {
   try {
-    const response = await fetch(
-      `${process.env.REACT_ENV_API_URL}/api/v1/users/logout`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    await axiosInstance.post("/v1/users/logout");
 
-    if (!response.ok) {
-      throw new Error(`Logout failed: ${response.statusText}`);
-    }
-
-    // Remove token from localStorage if you stored it there
+    // Remove token from localStorage
     localStorage.removeItem("auth_token");
+
+    // Remove Authorization header from axios instance
+    delete axiosInstance.defaults.headers.common["Authorization"];
   } catch (error) {
     console.error("Logout error:", error);
     throw error;

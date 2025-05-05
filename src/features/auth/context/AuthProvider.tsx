@@ -21,22 +21,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-//   useEffect(() => {
-//     const checkSession = async () => {
-//       setIsLoading(true);
-//       try {
-//         const userData = await fetchSession();
-//         setUser(userData);
-//       } catch (err) {
-//         console.error("Session check failed:", err);
-//         setUser(null);
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
+  useEffect(() => {
+    const checkSession = async () => {
+      setIsLoading(true);
+      try {
+        const userData = await fetchSession();
+        setUser(userData);
+      } catch (err) {
+        // console.error("Session check failed:", err);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-//     checkSession();
-//   }, []);
+    checkSession();
+  }, []);
 
   const login = async (email: string, password: string): Promise<User> => {
     setIsLoading(true);
