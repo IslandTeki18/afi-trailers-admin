@@ -27,7 +27,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate("/dashboard");
+        navigate("/");
       }
     } catch (err: any) {
       setIsLoading(false);
@@ -38,10 +38,10 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   };
 
   return (
-    <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+    <div className="w-full max-w-md p-8 space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">AFI Trailer Rentals</h1>
-        <p className="mt-2 text-gray-600">Admin Portal Login</p>
+        <h1 className="text-3xl font-bold text-gray-300">Afi Trailer Rentals</h1>
+        <p className="mt-2 text-gray-100">Admin Portal Login</p>
       </div>
 
       {error && (
@@ -55,7 +55,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-100"
             >
               Email Address
             </label>
@@ -75,7 +75,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-100"
             >
               Password
             </label>

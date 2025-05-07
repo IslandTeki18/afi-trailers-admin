@@ -17,7 +17,7 @@ import {
   CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthContext } from "@/features/auth/context/AuthProvider";
-import { LoginPage, RoleGuard } from "@/features/auth";
+import { LoginPage, ProtectedRoute, RoleGuard } from "@/features/auth";
 
 // Layout component that incorporates Sidenav and Navbar
 const MainLayout = () => {
@@ -100,7 +100,11 @@ const MainLayout = () => {
 export const mainRoutes = [
   {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         path: "/",

@@ -1,24 +1,14 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { LoginForm } from "../components/LoginForm";
+import React from 'react';
 import { useAuthContext } from "../context/AuthProvider";
+import { Navigate } from "react-router-dom";
 
-export const LoginPage = () => {
+export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuthContext();
-  const navigate = useNavigate();
 
-  // Redirect to dashboard if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate("/");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
-
-  // Don't render login form while checking authentication
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-base-900">
-        <div className="text-white text-center">
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
           <svg
             className="w-8 h-8 mx-auto animate-spin"
             xmlns="http://www.w3.org/2000/svg"
@@ -45,9 +35,9 @@ export const LoginPage = () => {
     );
   }
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-base-900">
-      <LoginForm />
-    </div>
-  );
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 };

@@ -1,74 +1,70 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "../types/auth.types";
-import { loginUser } from "../api/loginUser";
-import { logoutUser } from "../api/logoutUser";
-import { fetchSession } from "../api/fetchSession";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
-interface AuthContextType {
+type User = {
+  id: string;
+  email: string;
+  role: string;
+  // Add other user properties as needed
+};
+
+type AuthContextType = {
   user: User | null;
-  login: (email: string, password: string) => Promise<User>;
-  logout: () => Promise<void>;
   isLoading: boolean;
-  error: string | null;
-}
+  isAuthenticated: boolean;
+  login: (userData: User) => void;
+  logout: () => void;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Check localStorage on initial load
   useEffect(() => {
-    const checkSession = async () => {
-      setIsLoading(true);
+    const checkAuth = () => {
       try {
-        const userData = await fetchSession();
-        setUser(userData);
-      } catch (err) {
-        // console.error("Session check failed:", err);
-        setUser(null);
+        const storedUser = localStorage.getItem("atr_admin_user");
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.log("Error retrieving auth data:", error);
+        localStorage.removeItem("atr_admin_user");
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkSession();
+    checkAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<User> => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const userData = await loginUser(email, password);
-      setUser(userData);
-      return userData;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to login";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
+  const login = (userData: User) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    localStorage.setItem("atr_admin_user", JSON.stringify(userData));
   };
 
-  const logout = async (): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await logoutUser();
-      setUser(null);
-    } catch (err) {
-      console.error("Logout failed:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem("atr_admin_user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, error }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, isAuthenticated, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

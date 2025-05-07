@@ -21,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({
   const baseClasses = "transition-colors";
   const variantClasses = {
     primary: "bg-blue-900 text-white dark:bg-blue-800",
-    secondary: "bg-gray-900 text-white dark:bg-gray-800",
+    secondary: "bg-base-900 text-white dark:bg-gray-800",
     accent: "bg-indigo-900 text-white dark:bg-indigo-800",
     neutral: "bg-slate-900 text-white dark:bg-slate-800",
   };

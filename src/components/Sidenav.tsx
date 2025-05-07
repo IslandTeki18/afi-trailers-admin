@@ -92,7 +92,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
         >
           <DialogBackdrop
             transition
-            className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-[closed]:opacity-0"
+            className="fixed inset-0 bg-base-900/80 transition-opacity duration-300 ease-linear data-[closed]:opacity-0"
           />
 
           <div className="fixed inset-0 flex">
@@ -315,7 +315,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
             {/* Separator */}
             <div
               aria-hidden="true"
-              className="h-6 w-px bg-gray-900/10 lg:hidden"
+              className="h-6 w-px bg-base-900/10 lg:hidden"
             />
 
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
@@ -344,7 +344,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
                 {/* Separator */}
                 <div
                   aria-hidden="true"
-                  className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10"
+                  className="hidden lg:block lg:h-6 lg:w-px lg:bg-base-900/10"
                 />
 
                 {/* Profile dropdown */}
@@ -390,9 +390,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
           </div>
 
           <main className="py-10">
-            <div className="px-4 sm:px-6 lg:px-8">
-              {children}
-            </div>
+            <div className="px-4 sm:px-6 lg:px-8">{children}</div>
           </main>
         </div>
       </div>

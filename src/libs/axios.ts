@@ -2,7 +2,6 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 export const axiosInstance = axios.create({
   baseURL: process.env.REACT_ENV_API_URL || "http://localhost:3001/api",
-  withCredentials: true,
 });
 
 // Add a request interceptor

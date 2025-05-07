@@ -12,9 +12,11 @@ interface RoleGuardProps {
 export const RoleGuard: React.FC<RoleGuardProps> = ({
   element,
   allowedRoles,
-  fallbackPath = "/dashboard",
+  fallbackPath = "/",
 }) => {
   const { user } = useAuthContext();
+
+  console.log("User in RoleGuard:", user);
 
   if (user === null) {
     return <Navigate to="/login" />;

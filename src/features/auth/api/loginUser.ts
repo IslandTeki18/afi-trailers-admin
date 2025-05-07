@@ -23,6 +23,7 @@ export const loginUser = async (
 
     if (response.data.token) {
       localStorage.setItem("auth_token", response.data.token);
+      localStorage.setItem("atr_admin_user", JSON.stringify(response.data.user));
 
       axiosInstance.defaults.headers.common[
         "Authorization"
