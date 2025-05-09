@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/Input";
 import { loginUser } from "../api/loginUser";
 import { Button } from "@/components/Button";
+import { useAuthContext } from "../context/AuthProvider";
 
 type LoginFormProps = {
   onSuccess?: () => void;
@@ -19,15 +20,21 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+    const { login } = useAuthContext();
 
     try {
-      await loginUser(email, password);
+      const userData = await loginUser(email, password);
+
+      // Use the login function from context to set authenticated state
+      login(userData);
+
       setIsLoading(false);
 
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate("/");
+        // Force navigation to homepage
+        navigate("/", { replace: true });
       }
     } catch (err: any) {
       setIsLoading(false);

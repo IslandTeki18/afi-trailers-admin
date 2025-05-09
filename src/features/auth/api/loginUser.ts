@@ -16,23 +16,28 @@ export const loginUser = async (
   };
 
   try {
-    const response = await axiosInstance.post<User>(
+    const response = await axiosInstance.post<{ token: string; user: User }>(
       "/v1/users/login",
       credentials
     );
 
     if (response.data.token) {
       localStorage.setItem("auth_token", response.data.token);
-      localStorage.setItem("atr_admin_user", JSON.stringify(response.data.user));
 
+      // Make sure we're returning the user object, not the whole response
+      const userData = response.data.user;
+
+      // Set the authorization header for future requests
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${response.data.token}`;
+
+      return userData;
     }
 
-    return response.data;
+    throw new Error("No user data returned from login");
   } catch (error) {
-    console.log("Login error:", error);
+    console.error("Login error:", error);
     throw error;
   }
 };
