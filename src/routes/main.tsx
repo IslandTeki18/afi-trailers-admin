@@ -90,7 +90,7 @@ const MainLayout = () => {
 
   return (
     <div className="lg:block lg:w-64">
-      <Sidenav navigation={roleBasedNavigation} teams={teams} variant="primary">
+      <Sidenav navigation={roleBasedNavigation} teams={teams} variant="base">
         <Outlet />
       </Sidenav>
     </div>
@@ -118,23 +118,23 @@ export const mainRoutes = [
       },
       {
         path: "/bookings",
-        element: <BookingPage />,
+        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<BookingPage />} />,
       },
       {
         path: "/customers",
-        element: <CustomersPage />,
+        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<CustomersPage />} />,
       },
       {
         path: "/trailers",
-        element: <TrailersPage />,
+        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<TrailersPage />} />,
       },
       {
         path: "/agreements",
-        element: <AgreementsPage />,
+        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<AgreementsPage />} />,
       },
       {
         path: "/payments",
-        element: <PaymentPage />,
+        element: <RoleGuard allowedRoles={["admin"]} element={<PaymentPage />} />,
       },
     ],
   },

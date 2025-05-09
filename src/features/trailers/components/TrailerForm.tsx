@@ -84,10 +84,14 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
     // Handle nested properties
     if (name.includes(".")) {
       const [parent, child] = name.split(".");
+      const parentValue = formData[parent as keyof Partial<Trailer>];
+
       setFormData({
         ...formData,
         [parent]: {
-          ...formData[parent as keyof Partial<Trailer>],
+          ...(typeof parentValue === "object" && parentValue !== null
+            ? parentValue
+            : {}),
           [child]: type === "number" ? parseFloat(value) : value,
         },
       });

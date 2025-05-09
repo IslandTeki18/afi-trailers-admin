@@ -41,7 +41,7 @@ interface UserNavItem {
   href: string;
 }
 
-type ColorVariant = "primary" | "secondary" | "success" | "danger";
+type ColorVariant = "primary" | "secondary" | "accent" | "neutral" | "base";
 
 interface SidenavProps {
   navigation: NavItem[];
@@ -73,14 +73,64 @@ export const Sidenav: React.FC<SidenavProps> = ({
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Default to primary variant styling
-  const bgColor = "bg-indigo-600";
-  const hoverBgColor = "bg-indigo-700";
-  const textColor = "text-indigo-200";
-  const hoverTextColor = "text-white";
-  const activeTextColor = "text-white";
-  const borderColor = "border-indigo-400";
-  const bgSecondaryColor = "bg-indigo-500";
+  // Theme color mapping based on variant
+  const variantColors = {
+    primary: {
+      bgColor: "bg-primary-500",
+      hoverBgColor: "bg-primary-600",
+      textColor: "text-primary-200",
+      hoverTextColor: "text-white",
+      activeTextColor: "text-white",
+      borderColor: "border-primary-400",
+      bgSecondaryColor: "bg-primary-600",
+    },
+    secondary: {
+      bgColor: "bg-secondary-500",
+      hoverBgColor: "bg-secondary-600",
+      textColor: "text-secondary-200",
+      hoverTextColor: "text-white",
+      activeTextColor: "text-white",
+      borderColor: "border-secondary-400",
+      bgSecondaryColor: "bg-secondary-600",
+    },
+    accent: {
+      bgColor: "bg-accent-500",
+      hoverBgColor: "bg-accent-600",
+      textColor: "text-accent-200",
+      hoverTextColor: "text-white",
+      activeTextColor: "text-white",
+      borderColor: "border-accent-400",
+      bgSecondaryColor: "bg-accent-600",
+    },
+    neutral: {
+      bgColor: "bg-neutral-500",
+      hoverBgColor: "bg-neutral-600",
+      textColor: "text-neutral-200",
+      hoverTextColor: "text-white",
+      activeTextColor: "text-white",
+      borderColor: "border-neutral-400",
+      bgSecondaryColor: "bg-neutral-600",
+    },
+    base: {
+      bgColor: "bg-base-500",
+      hoverBgColor: "bg-base-600",
+      textColor: "text-base-200",
+      hoverTextColor: "text-white",
+      activeTextColor: "text-white",
+      borderColor: "border-base-400",
+      bgSecondaryColor: "bg-base-600",
+    },
+  };
+
+  const {
+    bgColor,
+    hoverBgColor,
+    textColor,
+    hoverTextColor,
+    activeTextColor,
+    borderColor,
+    bgSecondaryColor,
+  } = variantColors[variant];
 
   return (
     <>
@@ -166,7 +216,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
                       </ul>
                     </li>
                     <li>
-                      <div className="text-xs/6 font-semibold text-indigo-200">
+                      <div className={`text-xs/6 font-semibold ${textColor}`}>
                         Your teams
                       </div>
                       <ul role="list" className="-mx-2 mt-2 space-y-1">
@@ -258,7 +308,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
                   </ul>
                 </li>
                 <li>
-                  <div className="text-xs/6 font-semibold text-indigo-200">
+                  <div className={`text-xs/6 font-semibold ${textColor}`}>
                     Your teams
                   </div>
                   <ul role="list" className="-mx-2 mt-2 space-y-1">
@@ -306,7 +356,7 @@ export const Sidenav: React.FC<SidenavProps> = ({
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+              className="-m-2.5 p-2.5 text-neutral-500 lg:hidden"
             >
               <span className="sr-only">Open sidebar</span>
               <Bars3Icon aria-hidden="true" className="size-6" />
@@ -325,17 +375,17 @@ export const Sidenav: React.FC<SidenavProps> = ({
                   type="search"
                   placeholder="Search"
                   aria-label="Search"
-                  className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-none placeholder:text-gray-400 sm:text-sm/6"
+                  className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-neutral-900 outline-none placeholder:text-neutral-400 sm:text-sm/6"
                 />
                 <MagnifyingGlassIcon
                   aria-hidden="true"
-                  className="pointer-events-none col-start-1 row-start-1 size-5 self-center text-gray-400"
+                  className="pointer-events-none col-start-1 row-start-1 size-5 self-center text-neutral-400"
                 />
               </form>
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <button
                   type="button"
-                  className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+                  className="-m-2.5 p-2.5 text-neutral-400 hover:text-neutral-500"
                 >
                   <span className="sr-only">View notifications</span>
                   <BellIcon aria-hidden="true" className="size-6" />
@@ -354,30 +404,30 @@ export const Sidenav: React.FC<SidenavProps> = ({
                     <img
                       alt=""
                       src={userImgSrc}
-                      className="size-8 rounded-full bg-gray-50"
+                      className="size-8 rounded-full bg-neutral-50"
                     />
                     <span className="hidden lg:flex lg:items-center">
                       <span
                         aria-hidden="true"
-                        className="ml-4 text-sm/6 font-semibold text-gray-900"
+                        className="ml-4 text-sm/6 font-semibold text-neutral-900"
                       >
                         {userName}
                       </span>
                       <ChevronDownIcon
                         aria-hidden="true"
-                        className="ml-2 size-5 text-gray-400"
+                        className="ml-2 size-5 text-neutral-400"
                       />
                     </span>
                   </MenuButton>
                   <MenuItems
                     transition
-                    className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                    className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-neutral-900/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
                   >
                     {userNavigation.map((item) => (
                       <MenuItem key={item.name}>
                         <a
                           href={item.href}
-                          className="block px-3 py-1 text-sm/6 text-gray-900 data-[focus]:bg-gray-50 data-[focus]:outline-none"
+                          className="block px-3 py-1 text-sm/6 text-neutral-900 data-[focus]:bg-neutral-50 data-[focus]:outline-none"
                         >
                           {item.name}
                         </a>

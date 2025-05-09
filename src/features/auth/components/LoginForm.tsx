@@ -47,7 +47,9 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   return (
     <div className="w-full max-w-md p-8 space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-300">Afi Trailer Rentals</h1>
+        <h1 className="text-3xl font-bold text-gray-300">
+          Afi Trailer Rentals
+        </h1>
         <p className="mt-2 text-gray-100">Admin Portal Login</p>
       </div>
 
