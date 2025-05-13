@@ -13,6 +13,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: InputVariant;
   label?: string;
   id?: string;
+  darkMode?: boolean;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -20,37 +21,47 @@ export const Input: React.FC<InputProps> = ({
   label,
   className = "",
   id,
+  darkMode = false,
   ...props
 }) => {
   const baseClasses =
-    "px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-colors";
+    "block w-full rounded-md px-3 py-1.5 text-base outline outline-1 -outline-offset-1 sm:text-sm/6";
 
   const variantClasses = {
-    primary:
-      "border border-primary-300 focus:border-primary-500 focus:ring-primary-500 bg-base-500 text-neutral-100 placeholder:text-neutral-300",
-    secondary:
-      "border border-secondary-300 focus:border-secondary-500 focus:ring-secondary-400 bg-base-500 text-neutral-100 placeholder:text-neutral-300",
-    accent:
-      "border border-accent-300 focus:border-accent-500 focus:ring-accent-500 bg-base-500 text-neutral-100 placeholder:text-neutral-300",
-    warning:
-      "border border-warning focus:border-warning focus:ring-warning bg-base-500 text-white placeholder:text-neutral-300",
-    success:
-      "border border-success focus:border-success focus:ring-success bg-base-500 text-white placeholder:text-neutral-300",
-    info: "border border-info focus:border-info focus:ring-info bg-base-500 text-white placeholder:text-neutral-300",
-    error:
-      "border border-error focus:border-error focus:ring-error bg-base-500 text-white placeholder:text-neutral-300",
+    primary: `bg-white text-neutral-900 outline-primary-300 placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-primary-600`,
+    secondary: `bg-white text-neutral-900 outline-secondary-300 placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-secondary-600`,
+    accent: `bg-white text-neutral-900 outline-accent-300 placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-accent-600`,
+    info: `bg-white text-neutral-900 outline-info placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-info`,
+    warning: `bg-white text-neutral-900 outline-warning placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-warning`,
+    success: `bg-white text-neutral-900 outline-success placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-success`,
+    error: `bg-white text-neutral-900 outline-error placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-error`,
   };
 
-  const combinedClasses = `${baseClasses} ${variantClasses[variant]} ${className}`;
+  const darkModeClasses = {
+    primary: `bg-base-500 text-white outline-primary-500 placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-primary-400`,
+    secondary: `bg-base-500 text-white outline-secondary-500 placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-secondary-400`,
+    accent: `bg-base-500 text-white outline-accent-500 placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-accent-400`,
+    info: `bg-base-500 text-white outline-info placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-info`,
+    warning: `bg-base-500 text-white outline-warning placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-warning`,
+    success: `bg-base-500 text-white outline-success placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-success`,
+    error: `bg-base-500 text-white outline-error placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-error`,
+  };
+
+  const combinedClasses = `${baseClasses} ${
+    darkMode ? darkModeClasses[variant] : variantClasses[variant]
+  } ${className}`;
 
   return (
     <div className="flex flex-col">
       {label && (
-        <label htmlFor={id} className="mb-1 font-medium transition-colors">
+        <label
+          htmlFor={id}
+          className="mb-1 font-medium text-neutral-900 dark:text-neutral-100"
+        >
           {label}
         </label>
       )}
-      <input className={combinedClasses} {...props} />
+      <input id={id} className={combinedClasses} {...props} />
     </div>
   );
 };

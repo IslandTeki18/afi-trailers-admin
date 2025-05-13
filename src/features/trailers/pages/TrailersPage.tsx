@@ -2,8 +2,9 @@ import { TrailerList } from "../components/TrailerList";
 import { Button } from "../../../components/Button";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { TrailerForm } from "../components/TrailerForm";
+import { TrailerFormModal } from "../components/TrailerFormModal";
 import { Trailer } from "../types/trailer.types";
+import { createTrailer } from "../api/createTrailer";
 
 export const TrailersPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -11,11 +12,9 @@ export const TrailersPage = () => {
   const [selectedTrailer, setSelectedTrailer] =
     useState<Partial<Trailer> | null>(null);
 
-  const handleAddTrailer = (trailerData: Partial<Trailer>) => {
-    // Here you would typically call an API to create a new trailer
-    console.log("Adding new trailer:", trailerData);
+  const handleAddTrailer = (trailerData: Trailer) => {
+    createTrailer(trailerData)
 
-    // Close the modal and reset form
     setIsAddModalOpen(false);
   };
 
@@ -54,7 +53,7 @@ export const TrailersPage = () => {
         <TrailerList onEditClick={handleEditClick} />
       </div>
 
-      <TrailerForm
+      <TrailerFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddTrailer}
@@ -62,7 +61,7 @@ export const TrailersPage = () => {
       />
 
       {selectedTrailer && (
-        <TrailerForm
+        <TrailerFormModal
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -70,7 +69,7 @@ export const TrailersPage = () => {
           }}
           onSubmit={handleEditTrailer}
           initialData={selectedTrailer}
-          isEditing={true}
+          isEditing
         />
       )}
     </div>

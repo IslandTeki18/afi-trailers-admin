@@ -44,8 +44,6 @@ export type Trailer = {
     averageRating: number;
     totalReviews: number;
   };
-  createdAt: Date;
-  updatedAt: Date;
 };
 
 type TrailerBookedDates = {

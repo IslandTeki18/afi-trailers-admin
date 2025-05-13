@@ -1,8 +1,9 @@
 import * as React from "react";
 
-interface TextareaProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
   rows?: number;
   variant?:
@@ -22,27 +23,50 @@ export const Textarea: React.FC<TextareaProps> = ({
   placeholder = "",
   rows = 4,
   variant = "primary",
+  id,
+  name,
+  className = "",
+  defaultValue,
+  ...props
 }) => {
+  // Base styling that matches the reference textarea
   const baseClasses =
-    "block w-full rounded-md border-0 py-1.5 shadow-sm sm:text-sm sm:leading-6";
+    "block w-full rounded-md px-3 py-1.5 text-base outline outline-1 -outline-offset-1 sm:text-sm/6";
 
   const variantClasses = {
-    primary: `bg-base-500 text-white ring-1 ring-inset ring-primary-300 focus:ring-2 focus:ring-inset focus:ring-primary-300 placeholder:text-base-200`,
-    secondary: `bg-base-500 text-white ring-1 ring-inset ring-secondary-300 focus:ring-2 focus:ring-inset focus:ring-secondary-400 placeholder:text-base-200`,
-    accent: `bg-base-500 text-white ring-1 ring-inset ring-accent-300 focus:ring-2 focus:ring-inset focus:ring-accent-500 placeholder:text-base-100`,
-    info: `bg-base-500 text-white ring-1 ring-inset ring-info focus:ring-2 focus:ring-inset focus:ring-info placeholder:text-base-200`,
-    warning: `bg-base-500 text-white ring-1 ring-inset ring-warning focus:ring-2 focus:ring-inset focus:ring-warning placeholder:text-base-200`,
-    success: `bg-base-500 text-white ring-1 ring-inset ring-success focus:ring-2 focus:ring-inset focus:ring-success placeholder:text-base-200`,
-    error: `bg-base-500 text-white ring-1 ring-inset ring-error focus:ring-2 focus:ring-inset focus:ring-error placeholder:text-base-200`,
+    primary: `bg-white text-neutral-900 outline-primary-300 placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-primary-600`,
+    secondary: `bg-white text-neutral-900 outline-secondary-300 placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-secondary-600`,
+    accent: `bg-white text-neutral-900 outline-accent-300 placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-accent-600`,
+    info: `bg-white text-neutral-900 outline-info placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-info`,
+    warning: `bg-white text-neutral-900 outline-warning placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-warning`,
+    success: `bg-white text-neutral-900 outline-success placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-success`,
+    error: `bg-white text-neutral-900 outline-error placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-error`,
+  };
+
+  // Dark mode variants (if needed)
+  const darkModeClasses = {
+    primary: `bg-base-500 text-white outline-primary-500 placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-primary-400`,
+    secondary: `bg-base-500 text-white outline-secondary-500 placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-secondary-400`,
+    accent: `bg-base-500 text-white outline-accent-500 placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-accent-400`,
+    info: `bg-base-500 text-white outline-info placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-info`,
+    warning: `bg-base-500 text-white outline-warning placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-warning`,
+    success: `bg-base-500 text-white outline-success placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-success`,
+    error: `bg-base-500 text-white outline-error placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-error`,
   };
 
   return (
     <textarea
+      id={id}
+      name={name}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
-      className={`${baseClasses} ${variantClasses[variant]}`}
+      defaultValue={defaultValue}
+      className={`${baseClasses} ${
+        props.darkMode ? darkModeClasses[variant] : variantClasses[variant]
+      } ${className}`}
+      {...props}
     />
   );
 };

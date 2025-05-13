@@ -7,22 +7,23 @@ import { Textarea } from "../../../components/Textarea";
 import { Trailer } from "../types/trailer.types";
 import { Button } from "../../../components/Button";
 
-interface TrailerFormProps {
+interface TrailerFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<Trailer>) => void;
-  initialData?: Partial<Trailer>;
+  onSubmit: (data: Trailer) => void;
+  initialData?: Trailer;
   isEditing?: boolean;
 }
 
-export const TrailerForm: React.FC<TrailerFormProps> = ({
+export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
   initialData,
   isEditing = false,
 }) => {
-  const defaultTrailer: Partial<Trailer> = {
+  const defaultTrailer: Trailer = {
+    _id: "",
     name: "",
     capacity: "",
     dimensions: {
@@ -39,6 +40,8 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
     deliveryFee: 0,
     weekendSurcharge: 0,
     maintenanceStatus: "Operational",
+    lastMaintenanceDate: null,
+    nextScheduledMaintenance: null,
     features: [],
     insuranceRequired: false,
     towingRequirements: [],
@@ -49,25 +52,38 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
     },
     location: {
       address: "",
+      coordinates: {
+        latitude: 0,
+        longitude: 0,
+      },
+    },
+    photos: [],
+    availability: {
+      isAvailable: true,
+      nextAvailableDate: undefined,
+    },
+    bookedDates: [],
+    usageHistory: [],
+    ratings: {
+      averageRating: 0,
+      totalReviews: 0,
     },
   };
 
-  const [formData, setFormData] = useState<Partial<Trailer>>(
-    initialData || defaultTrailer
+  const [formData, setFormData] = useState<Trailer>(
+    (initialData || defaultTrailer) as Trailer
   );
 
   // State for array inputs that need special handling
   const [feature, setFeature] = useState<string>("");
   const [towReq, setTowReq] = useState<string>("");
+  const [photoUrl, setPhotoUrl] = useState<string>("");
 
   const trailerTypeOptions = [
-    { value: "Box", label: "Box Trailer" },
-    { value: "Flatbed", label: "Flatbed" },
-    { value: "Car", label: "Car Trailer" },
+    { value: "Dump", label: "Dump Trailer" },
+    { value: "Enclosed", label: "Enclosed Trailer" },
+    { value: "Flatbed", label: "Flatbed Trailer" },
     { value: "Utility", label: "Utility Trailer" },
-    { value: "Horse", label: "Horse Float" },
-    { value: "Refrigerated", label: "Refrigerated Trailer" },
-    { value: "Tanker", label: "Tanker" },
   ];
 
   const maintenanceStatusOptions = [
@@ -83,23 +99,49 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
     // Handle nested properties
     if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      const parentValue = formData[parent as keyof Partial<Trailer>];
+      const parts = name.split(".");
+      if (parts.length === 2) {
+        const [parent, child] = parts;
+        const parentValue = formData[parent as keyof Trailer];
 
-      setFormData({
-        ...formData,
-        [parent]: {
-          ...(typeof parentValue === "object" && parentValue !== null
-            ? parentValue
-            : {}),
-          [child]: type === "number" ? parseFloat(value) : value,
-        },
-      });
+        setFormData({
+          ...formData,
+          [parent]: {
+            ...(typeof parentValue === "object" && parentValue !== null
+              ? parentValue
+              : {}),
+            [child]: type === "number" ? parseFloat(value) : value,
+          },
+        });
+      } else if (parts.length === 3) {
+        const [parent, middle, child] = parts;
+        const parentValue = formData[parent as keyof Partial<Trailer>] as any;
+
+        setFormData({
+          ...formData,
+          [parent]: {
+            ...(typeof parentValue === "object" && parentValue !== null
+              ? parentValue
+              : {}),
+            [middle]: {
+              ...(parentValue && typeof parentValue[middle] === "object"
+                ? parentValue[middle]
+                : {}),
+              [child]: type === "number" ? parseFloat(value) : value,
+            },
+          },
+        });
+      }
     } else if (type === "checkbox") {
       const target = e.target as HTMLInputElement;
       setFormData({
         ...formData,
         [name]: target.checked,
+      });
+    } else if (type === "date") {
+      setFormData({
+        ...formData,
+        [name]: value ? new Date(value) : null,
       });
     } else {
       setFormData({
@@ -117,7 +159,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
   };
 
   const handleArrayItemAdd = (
-    arrayName: "features" | "towingRequirements",
+    arrayName: "features" | "towingRequirements" | "photos",
     item: string
   ) => {
     if (!item.trim()) return;
@@ -129,13 +171,15 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
     if (arrayName === "features") {
       setFeature("");
-    } else {
+    } else if (arrayName === "towingRequirements") {
       setTowReq("");
+    } else if (arrayName === "photos") {
+      setPhotoUrl("");
     }
   };
 
   const handleArrayItemRemove = (
-    arrayName: "features" | "towingRequirements",
+    arrayName: "features" | "towingRequirements" | "photos",
     index: number
   ) => {
     setFormData({
@@ -160,8 +204,19 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
     }
   };
 
+  const handleAvailabilityToggle = (isAvailable: boolean) => {
+    setFormData({
+      ...formData,
+      availability: {
+        ...formData.availability,
+        isAvailable,
+      },
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormData(initialData || defaultTrailer);
     onSubmit(formData);
   };
 
@@ -215,7 +270,9 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
             </div>
 
             <div className="sm:col-span-6">
+              <span className="">Description</span>
               <Textarea
+                id="description"
                 value={formData.description || ""}
                 onChange={handleTextareaChange}
                 placeholder="Enter a detailed description of the trailer"
@@ -233,7 +290,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
             <div className="sm:col-span-2">
               <Input
-                label="Length (meters)"
+                label="Length (feet)"
                 id="dimensions-length"
                 name="dimensions.length"
                 type="number"
@@ -247,7 +304,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
             <div className="sm:col-span-2">
               <Input
-                label="Width (meters)"
+                label="Width (feet)"
                 id="dimensions-width"
                 name="dimensions.width"
                 type="number"
@@ -261,7 +318,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
             <div className="sm:col-span-2">
               <Input
-                label="Height (meters)"
+                label="Height (feet)"
                 id="dimensions-height"
                 name="dimensions.height"
                 type="number"
@@ -280,7 +337,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
                 name="capacity"
                 value={formData.capacity || ""}
                 onChange={handleChange}
-                placeholder="e.g. 500kg"
+                placeholder="e.g. 15000 lbs"
                 variant="primary"
                 required
               />
@@ -288,20 +345,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
             <div className="sm:col-span-3">
               <Input
-                label="Location Address"
-                id="location-address"
-                name="location.address"
-                value={formData.location?.address || ""}
-                onChange={handleChange}
-                placeholder="Enter trailer location"
-                variant="primary"
-                required
-              />
-            </div>
-
-            <div className="sm:col-span-3">
-              <Input
-                label="Empty Weight (kg)"
+                label="Empty Weight (lbs)"
                 id="weight-empty"
                 name="weight.empty"
                 type="number"
@@ -314,7 +358,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
 
             <div className="sm:col-span-3">
               <Input
-                label="Maximum Load (kg)"
+                label="Maximum Load (lbs)"
                 id="weight-maxLoad"
                 name="weight.maxLoad"
                 type="number"
@@ -322,6 +366,52 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
                 onChange={handleChange}
                 variant="primary"
                 required
+              />
+            </div>
+
+            {/* Location Section */}
+            <div className="sm:col-span-6">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
+                Location
+              </h4>
+            </div>
+
+            <div className="sm:col-span-6">
+              <Input
+                label="Address"
+                id="location-address"
+                name="location.address"
+                value={formData.location?.address || ""}
+                onChange={handleChange}
+                placeholder="Enter trailer location"
+                variant="primary"
+                required
+              />
+            </div>
+
+            <div className="sm:col-span-3">
+              <Input
+                label="Latitude"
+                id="location-coordinates-latitude"
+                name="location.coordinates.latitude"
+                type="number"
+                step="0.000001"
+                value={formData.location?.coordinates?.latitude || 0}
+                onChange={handleChange}
+                variant="primary"
+              />
+            </div>
+
+            <div className="sm:col-span-3">
+              <Input
+                label="Longitude"
+                id="location-coordinates-longitude"
+                name="location.coordinates.longitude"
+                type="number"
+                step="0.000001"
+                value={formData.location?.coordinates?.longitude || 0}
+                onChange={handleChange}
+                variant="primary"
               />
             </div>
 
@@ -376,7 +466,7 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
               />
             </div>
 
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-2">
               <Input
                 label="Weekend Surcharge ($)"
                 id="weekendSurcharge"
@@ -390,24 +480,183 @@ export const TrailerForm: React.FC<TrailerFormProps> = ({
               />
             </div>
 
+            {/* Availability Section */}
+            <div className="sm:col-span-6">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
+                Availability
+              </h4>
+            </div>
+
             <div className="sm:col-span-3">
-              <Select
-                label="Maintenance Status"
-                id="maintenanceStatus"
-                name="maintenanceStatus"
-                value={formData.maintenanceStatus || "Operational"}
-                onChange={handleChange}
-                options={maintenanceStatusOptions}
-                variant="primary"
-                required
-              />
+              <div className="flex items-center">
+                <Checkbox
+                  id="availability-available"
+                  checked={formData.availability?.isAvailable || false}
+                  onChange={() => handleAvailabilityToggle(true)}
+                  variant="primary"
+                />
+                <label
+                  htmlFor="availability-available"
+                  className="ml-2 text-gray-700"
+                >
+                  Available for Rental
+                </label>
+              </div>
+            </div>
+
+            <div className="sm:col-span-3">
+              <div className="flex items-center">
+                <Checkbox
+                  id="availability-unavailable"
+                  checked={formData.availability?.isAvailable === false}
+                  onChange={() => handleAvailabilityToggle(false)}
+                  variant="primary"
+                />
+                <label
+                  htmlFor="availability-unavailable"
+                  className="ml-2 text-gray-700"
+                >
+                  Unavailable
+                </label>
+              </div>
+            </div>
+
+            {formData.availability?.isAvailable === false && (
+              <div className="sm:col-span-3">
+                <Input
+                  label="Next Available Date"
+                  id="next-available-date"
+                  name="availability.nextAvailableDate"
+                  type="date"
+                  value={
+                    formData.availability.nextAvailableDate
+                      ? new Date(formData.availability.nextAvailableDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  onChange={handleChange}
+                  variant="primary"
+                />
+              </div>
+            )}
+
+            {/* Maintenance Section */}
+            <div className="sm:col-span-6">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
+                Maintenance
+              </h4>
+            </div>
+
+            <div className="sm:col-span-6 flex flex-col space-y-4">
+              <div>
+                <Select
+                  label="Maintenance Status"
+                  id="maintenanceStatus"
+                  name="maintenanceStatus"
+                  value={formData.maintenanceStatus || "Operational"}
+                  onChange={handleChange}
+                  options={maintenanceStatusOptions}
+                  variant="primary"
+                  required
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Last Maintenance Date"
+                  id="lastMaintenanceDate"
+                  name="lastMaintenanceDate"
+                  type="date"
+                  value={
+                    formData.lastMaintenanceDate
+                      ? new Date(formData.lastMaintenanceDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  onChange={handleChange}
+                  variant="primary"
+                />
+              </div>
+
+              <div>
+                <Input
+                  label="Next Scheduled Maintenance"
+                  id="nextScheduledMaintenance"
+                  name="nextScheduledMaintenance"
+                  type="date"
+                  value={
+                    formData.nextScheduledMaintenance
+                      ? new Date(formData.nextScheduledMaintenance)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  onChange={handleChange}
+                  variant="primary"
+                />
+              </div>
+            </div>
+
+            {/* Photos Section */}
+            <div className="sm:col-span-6">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
+                Photos
+              </h4>
+            </div>
+
+            <div className="sm:col-span-6">
+              <label className="block text-sm font-medium text-gray-700">
+                Trailer Photos
+              </label>
+              <div className="mt-1 flex rounded-md shadow-sm">
+                <Input
+                  id="photo-url-input"
+                  value={photoUrl}
+                  onChange={(e) => setPhotoUrl(e.target.value)}
+                  placeholder="Enter photo URL"
+                  className="flex-1"
+                  variant="primary"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleArrayItemAdd("photos", photoUrl)}
+                  className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Add
+                </button>
+              </div>
+              {formData.photos && formData.photos.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-4">
+                  {formData.photos.map((url, index) => (
+                    <div key={`photo-${index}`} className="relative">
+                      <img
+                        src={url}
+                        alt={`Trailer ${index + 1}`}
+                        className="h-24 w-full object-cover rounded"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleArrayItemRemove("photos", index)}
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500 flex items-center justify-center text-white"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Service Types Section */}
             <div className="sm:col-span-6">
-              <h4 className="text-md font-medium text-gray-700 mb-2">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Service Types
               </h4>
+            </div>
+
+            <div className="sm:col-span-6">
               <div className="mt-2 space-y-2 flex flex-col">
                 <div className="flex items-center">
                   <Checkbox
