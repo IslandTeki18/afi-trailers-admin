@@ -9,13 +9,22 @@ import { createTrailer } from "../api/createTrailer";
 export const TrailersPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedTrailer, setSelectedTrailer] =
-    useState<Partial<Trailer> | null>(null);
+  const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>();
 
-  const handleAddTrailer = (trailerData: Trailer) => {
-    createTrailer(trailerData)
-
-    setIsAddModalOpen(false);
+  const handleAddTrailer = async (trailerData: Trailer) => {
+    try {
+      console.log("Creating trailer...", trailerData);
+      const result = await createTrailer(trailerData);
+      console.log("Trailer created successfully:", result);
+      
+      setIsAddModalOpen(false);
+      
+      window.dispatchEvent(new CustomEvent('refetch-trailers'));
+      
+    } catch (error) {
+      console.error("Error adding trailer:", error);
+      alert("Failed to add trailer. Please try again.");
+    }
   };
 
   const handleEditTrailer = (trailerData: Partial<Trailer>) => {
@@ -42,7 +51,11 @@ export const TrailersPage = () => {
           </p>
         </div>
         <div>
-          <Button variant="primary" onClick={() => setIsAddModalOpen(true)} className="flex items-center">
+          <Button
+            variant="primary"
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center"
+          >
             <PlusIcon className="h-5 w-5 mr-1" />
             Add New Trailer
           </Button>
@@ -50,7 +63,10 @@ export const TrailersPage = () => {
       </div>
 
       <div className="mt-4 bg-white rounded-lg shadow">
-        <TrailerList onEditClick={handleEditClick} />
+        <TrailerList
+          onEditClick={handleEditClick}
+          onAddClick={() => setIsAddModalOpen(true)}
+        />
       </div>
 
       <TrailerFormModal

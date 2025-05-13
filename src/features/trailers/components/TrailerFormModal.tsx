@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Modal } from "../../../components/Modal";
 import { Input } from "../../../components/Input";
 import { Select } from "../../../components/Select";
@@ -22,6 +22,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   initialData,
   isEditing = false,
 }) => {
+  const isSubmitting = useRef(false);
   const defaultTrailer: Trailer = {
     _id: "",
     name: "",
@@ -216,7 +217,25 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setFormData(initialData || defaultTrailer);
+    e.stopPropagation(); // Also stop propagation
+
+    // Prevent double submission
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
+
+    try {
+      onSubmit(formData);
+    } finally {
+      // Reset submission state after a short delay
+      setTimeout(() => {
+        isSubmitting.current = false;
+      }, 100);
+    }
+  };
+
+  // Add direct handler as backup
+  const handleSubmitClick = () => {
+    if (isSubmitting.current) return;
     onSubmit(formData);
   };
 
@@ -812,9 +831,10 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
 
         <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
           <Button
-            type="submit"
+            type="button"
             variant="primary"
             className="w-full sm:w-auto sm:ml-3"
+            onClick={handleSubmitClick}
           >
             {isEditing ? "Update Trailer" : "Add Trailer"}
           </Button>
