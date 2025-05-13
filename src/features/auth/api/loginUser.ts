@@ -17,17 +17,14 @@ export const loginUser = async (
 
   try {
     const response = await axiosInstance.post<{ token: string; user: User }>(
-      "/v1/users/login",
+      "/users/login",
       credentials
     );
 
     if (response.data.token) {
-      localStorage.setItem("auth_token", response.data.token);
-
-      // Make sure we're returning the user object, not the whole response
+      localStorage.setItem("atr_auth_token", response.data.token);
       const userData = response.data.user;
-
-      // Set the authorization header for future requests
+      localStorage.setItem("atr_admin_user", JSON.stringify(userData));
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${response.data.token}`;

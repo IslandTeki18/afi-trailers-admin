@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuthContext } from "../context/AuthProvider";
+import { useAuth } from "../hooks/useAuth";
 import { User } from "../types/auth.types";
 
 interface RoleGuardProps {
@@ -14,7 +14,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   allowedRoles,
   fallbackPath = "/",
 }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   console.log("User in RoleGuard:", user);
 

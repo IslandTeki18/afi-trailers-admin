@@ -7,7 +7,7 @@ interface RefreshResponse {
 export const refreshToken = async (): Promise<string> => {
   try {
     const response = await axiosInstance.post<RefreshResponse>(
-      "/v1/users/refresh-token"
+      "/users/refresh-token"
     );
 
     const newToken = response.data.token;

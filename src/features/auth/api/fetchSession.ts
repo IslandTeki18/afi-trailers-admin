@@ -15,7 +15,7 @@ export const fetchSession = async (): Promise<User> => {
       ] = `Bearer ${token}`;
     }
 
-    const response = await axiosInstance.get<User>("/v1/users/session", {
+    const response = await axiosInstance.get<User>("/users/session", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

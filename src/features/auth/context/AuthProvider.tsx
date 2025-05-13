@@ -1,27 +1,20 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useState, useEffect, ReactNode } from "react";
 
 type User = {
   id: string;
   email: string;
   role: string;
-  // Add other user properties as needed
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (userData: User) => void;
-  logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -39,8 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.log("Error retrieving auth data:", error);
         localStorage.removeItem("atr_admin_user");
+        localStorage.removeItem("atr_auth_token");
       } finally {
         setIsLoading(false);
       }
@@ -49,31 +42,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem("atr_admin_user", JSON.stringify(userData));
-  };
-
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem("atr_admin_user");
-  };
-
   return (
-    <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated, login, logout }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuthContext = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuthContext must be used within an AuthProvider");
-  }
-  return context;
 };

@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "../components/LoginForm";
-import { useAuthContext } from "../context/AuthProvider";
+import { useAuth } from "../hooks/useAuth";
 
 export const LoginPage = () => {
-  const { isAuthenticated, isLoading } = useAuthContext();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       navigate("/", { replace: true });

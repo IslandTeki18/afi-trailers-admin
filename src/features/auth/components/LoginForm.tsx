@@ -3,39 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/Input";
 import { loginUser } from "../api/loginUser";
 import { Button } from "@/components/Button";
-import { useAuthContext } from "../context/AuthProvider";
 
-type LoginFormProps = {
-  onSuccess?: () => void;
-};
-
-export const LoginForm = ({ onSuccess }: LoginFormProps) => {
+export const LoginForm = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    const { login } = useAuthContext();
 
     try {
-      const userData = await loginUser(email, password);
-
-      // Use the login function from context to set authenticated state
-      login(userData);
+      await loginUser(email, password);
 
       setIsLoading(false);
 
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        // Force navigation to homepage
-        navigate("/", { replace: true });
-      }
+      navigate("/", { replace: true });
     } catch (err: any) {
       setIsLoading(false);
       setError(

@@ -2,7 +2,7 @@ import { axiosInstance } from "../../../libs/axios";
 
 export const logoutUser = async (): Promise<void> => {
   try {
-    await axiosInstance.post("/v1/users/logout");
+    await axiosInstance.post("/users/logout");
 
     // Remove token from localStorage
     localStorage.removeItem("auth_token");

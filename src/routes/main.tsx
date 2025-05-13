@@ -16,13 +16,13 @@ import {
   DocumentTextIcon,
   CreditCardIcon,
 } from "@heroicons/react/24/outline";
-import { useAuthContext } from "@/features/auth/context/AuthProvider";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LoginPage, ProtectedRoute, RoleGuard } from "@/features/auth";
 
 // Layout component that incorporates Sidenav and Navbar
 const MainLayout = () => {
   const location = useLocation();
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   // Navigation items with icons for Sidenav
   const sideNavItems = [
@@ -118,23 +118,45 @@ export const mainRoutes = [
       },
       {
         path: "/bookings",
-        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<BookingPage />} />,
+        element: (
+          <RoleGuard
+            allowedRoles={["admin", "staff"]}
+            element={<BookingPage />}
+          />
+        ),
       },
       {
         path: "/customers",
-        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<CustomersPage />} />,
+        element: (
+          <RoleGuard
+            allowedRoles={["admin", "staff"]}
+            element={<CustomersPage />}
+          />
+        ),
       },
       {
         path: "/trailers",
-        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<TrailersPage />} />,
+        element: (
+          <RoleGuard
+            allowedRoles={["admin", "staff"]}
+            element={<TrailersPage />}
+          />
+        ),
       },
       {
         path: "/agreements",
-        element: <RoleGuard allowedRoles={["admin", "staff"]} element={<AgreementsPage />} />,
+        element: (
+          <RoleGuard
+            allowedRoles={["admin", "staff"]}
+            element={<AgreementsPage />}
+          />
+        ),
       },
       {
         path: "/payments",
-        element: <RoleGuard allowedRoles={["admin"]} element={<PaymentPage />} />,
+        element: (
+          <RoleGuard allowedRoles={["admin"]} element={<PaymentPage />} />
+        ),
       },
     ],
   },
