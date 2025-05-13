@@ -24,7 +24,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
 }) => {
   const isSubmitting = useRef(false);
   const defaultTrailer: Trailer = {
-    _id: "",
     name: "",
     capacity: "",
     dimensions: {
@@ -81,6 +80,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   const [photoUrl, setPhotoUrl] = useState<string>("");
 
   const trailerTypeOptions = [
+    { value: "", label: "Select Type" },
     { value: "Dump", label: "Dump Trailer" },
     { value: "Enclosed", label: "Enclosed Trailer" },
     { value: "Flatbed", label: "Flatbed Trailer" },
@@ -96,6 +96,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    console.log(e.target);
     const { name, value, type } = e.target;
 
     // Handle nested properties
@@ -116,7 +117,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
         });
       } else if (parts.length === 3) {
         const [parent, middle, child] = parts;
-        const parentValue = formData[parent as keyof Partial<Trailer>] as any;
+        const parentValue = formData[parent as keyof Trailer] as any;
 
         setFormData({
           ...formData,
@@ -149,6 +150,57 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
         ...formData,
         [name]: type === "number" ? parseFloat(value) : value,
       });
+    }
+  };
+
+  const handleOptionChange = (
+    option: { value: string; label: string },
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const { name } = e.target;
+
+    // Update form data with the selected option
+    setFormData({
+      ...formData,
+      [name]: option.value,
+    });
+
+    // Additional logic based on specific selects
+    if (name === "type") {
+      // Example: Set default features based on trailer type
+      const typeSpecificFeatures: Record<string, string[]> = {
+        Dump: ["Heavy duty", "Hydraulic lift"],
+        Enclosed: ["Weather protection", "Lockable"],
+        Flatbed: ["Tie-down points", "Ramps"],
+        Utility: ["Multi-purpose", "Light weight"],
+      };
+
+      if (typeSpecificFeatures[option.value]) {
+        // Only set default features if none are already set
+        if (!formData.features || formData.features.length === 0) {
+          setFormData((prev) => ({
+            ...prev,
+            features: typeSpecificFeatures[option.value],
+          }));
+        }
+      }
+    }
+
+    if (name === "maintenanceStatus") {
+      // Example: If status changes to maintenance, suggest next available date
+      if (option.value === "Maintenance") {
+        const twoWeeksFromNow = new Date();
+        twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
+
+        setFormData((prev) => ({
+          ...prev,
+          availability: {
+            ...prev.availability,
+            isAvailable: false,
+            nextAvailableDate: twoWeeksFromNow,
+          },
+        }));
+      }
     }
   };
 
@@ -217,23 +269,20 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Also stop propagation
+    e.stopPropagation();
 
-    // Prevent double submission
     if (isSubmitting.current) return;
     isSubmitting.current = true;
 
     try {
       onSubmit(formData);
     } finally {
-      // Reset submission state after a short delay
       setTimeout(() => {
         isSubmitting.current = false;
       }, 100);
     }
   };
 
-  // Add direct handler as backup
   const handleSubmitClick = () => {
     if (isSubmitting.current) return;
     onSubmit(formData);
@@ -282,6 +331,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 name="type"
                 value={formData.type || ""}
                 onChange={handleChange}
+                onOptionChange={handleOptionChange}
                 options={trailerTypeOptions}
                 variant="primary"
                 required
@@ -313,11 +363,11 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 id="dimensions-length"
                 name="dimensions.length"
                 type="number"
-                step="0.01"
                 value={formData.dimensions?.length || 0}
                 onChange={handleChange}
                 variant="primary"
                 required
+                step={1}
               />
             </div>
 
@@ -327,7 +377,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 id="dimensions-width"
                 name="dimensions.width"
                 type="number"
-                step="0.01"
                 value={formData.dimensions?.width || 0}
                 onChange={handleChange}
                 variant="primary"
@@ -341,11 +390,11 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 id="dimensions-height"
                 name="dimensions.height"
                 type="number"
-                step="0.01"
                 value={formData.dimensions?.height || 0}
                 onChange={handleChange}
                 variant="primary"
                 required
+                step={1}
               />
             </div>
 
@@ -359,6 +408,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 placeholder="e.g. 15000 lbs"
                 variant="primary"
                 required
+                step={1}
               />
             </div>
 
@@ -372,6 +422,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 onChange={handleChange}
                 variant="primary"
                 required
+                step={1}
               />
             </div>
 
@@ -385,6 +436,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 onChange={handleChange}
                 variant="primary"
                 required
+                step={1}
               />
             </div>
 
@@ -575,6 +627,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                   name="maintenanceStatus"
                   value={formData.maintenanceStatus || "Operational"}
                   onChange={handleChange}
+                  onOptionChange={handleOptionChange}
                   options={maintenanceStatusOptions}
                   variant="primary"
                   required

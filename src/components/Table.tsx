@@ -160,7 +160,6 @@ export function Table({
                   <tr key={item.id || rowIndex}>
                     {columns.map((column, colIndex) => {
                       const isFirstColumn = colIndex === 0;
-
                       if (column.isAction) {
                         return (
                           <td
@@ -211,6 +210,7 @@ export function Table({
                                 : "px-3 py-4 text-sm " +
                                   variantClasses[variant].cell
                             }`}
+                            title={String(item[column.accessor])}
                           >
                             {String(item[column.accessor])}
                           </td>

@@ -6,7 +6,7 @@ export const fetchTrailers = async () => {
     // Make API request using axios instance
     const response = await axiosInstance.get("/trailers/");
 
-    return response.data.trailers || [];
+    return response.data || [];
   } catch (error) {
     console.error("Failed to fetch trailers:", error);
     throw error;

@@ -9,11 +9,22 @@ type SelectVariant =
   | "info"
   | "error";
 
+// Improve type safety with a proper type for options
+type SelectOption = {
+  value: string;
+  label: string;
+  [key: string]: any; // Allow additional properties
+};
+
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   variant?: SelectVariant;
   label?: string;
-  options: any[];
+  options: SelectOption[];
   id: string;
+  onOptionChange?: (
+    option: SelectOption,
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => void;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -22,6 +33,8 @@ export const Select: React.FC<SelectProps> = ({
   options,
   id,
   className = "",
+  onChange,
+  onOptionChange,
   ...props
 }) => {
   const baseClasses =
@@ -45,6 +58,24 @@ export const Select: React.FC<SelectProps> = ({
 
   const combinedClasses = `${baseClasses} ${variantClasses[variant]} ${className}`;
 
+  // Handler function that calls both standard onChange and enhanced onOptionChange
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Call the original onChange if provided
+    if (onChange) {
+      onChange(e);
+    }
+
+    // Call the enhanced onOptionChange with the full option object
+    if (onOptionChange) {
+      const selectedValue = e.target.value;
+      const selectedOption = options.find((opt) => opt.value === selectedValue);
+
+      if (selectedOption) {
+        onOptionChange(selectedOption, e);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {label && (
@@ -52,7 +83,12 @@ export const Select: React.FC<SelectProps> = ({
           {label}
         </label>
       )}
-      <select className={combinedClasses} {...props} id={id}>
+      <select
+        className={combinedClasses}
+        {...props}
+        id={id}
+        onChange={handleChange}
+      >
         {options.map((option, idx) => (
           <option
             key={`option-item-${idx}`}

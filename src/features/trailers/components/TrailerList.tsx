@@ -24,8 +24,10 @@ export const TrailerList: React.FC<TrailerListProps> = ({
     const fetchTrailersData = async () => {
       setIsLoading(true);
       try {
-        const trailers = await fetchTrailers();
-        setTrailers(trailers);
+        const response = await fetchTrailers();
+
+        console.log("Fetched trailers:", response);
+        setTrailers(response.data);
       } catch (error) {
         console.error("Error fetching trailers:", error);
       } finally {

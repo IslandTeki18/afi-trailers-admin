@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TrailerFormModal } from "../components/TrailerFormModal";
 import { Trailer } from "../types/trailer.types";
 import { createTrailer } from "../api/createTrailer";
+import { updateTrailer } from "../api/updateTrailer";
 
 export const TrailersPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -13,27 +14,25 @@ export const TrailersPage = () => {
 
   const handleAddTrailer = async (trailerData: Trailer) => {
     try {
-      console.log("Creating trailer...", trailerData);
-      const result = await createTrailer(trailerData);
-      console.log("Trailer created successfully:", result);
-      
+      await createTrailer(trailerData);
+
       setIsAddModalOpen(false);
-      
-      window.dispatchEvent(new CustomEvent('refetch-trailers'));
-      
+
+      window.dispatchEvent(new CustomEvent("refetch-trailers"));
     } catch (error) {
-      console.error("Error adding trailer:", error);
+      console.log("Error adding trailer:", error);
       alert("Failed to add trailer. Please try again.");
     }
   };
 
-  const handleEditTrailer = (trailerData: Partial<Trailer>) => {
-    // Here you would typically call an API to update the trailer
-    console.log("Updating trailer:", trailerData);
-
-    // Close the modal and reset form
-    setIsEditModalOpen(false);
-    setSelectedTrailer(null);
+  const handleEditTrailer = async (trailerData: Trailer) => {
+    try {
+      const response = await updateTrailer(selectedTrailer?._id, trailerData);
+    } catch (error) {
+      console.log("Error updating trailer:", error);
+      alert("Failed to update trailer. Please try again.");
+      
+    }
   };
 
   const handleEditClick = (trailer: Trailer) => {
