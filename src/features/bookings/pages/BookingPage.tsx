@@ -287,14 +287,6 @@ export const BookingPage = () => {
         </div>
         <div className="flex space-x-2">
           <Button variant="base" onClick={() => navigate("calendar")}>View Booking Calendar</Button>
-          <Button
-            variant="base"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center"
-          >
-            <PlusIcon className="h-5 w-5 mr-1" />
-            Add New Booking
-          </Button>
         </div>
       </div>
 
