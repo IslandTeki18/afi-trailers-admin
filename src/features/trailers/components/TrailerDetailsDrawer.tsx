@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { Drawer } from "../../../components/Drawer";
 import { Button } from "../../../components/Button";
 import { Trailer } from "../types/trailer.types";
+import { TrailerPhotosCarousel } from "./TrailerPhotosCarousel";
 
 // Define props for the drawer component
 interface TrailerDetailsDrawerProps {
@@ -198,6 +199,21 @@ export const TrailerDetailsDrawer = ({
                 </dd>
               </div>
             </dl>
+          </div>
+        </div>
+        
+        {/* Photos section */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Photos</h3>
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <TrailerPhotosCarousel
+              photos={trailer.photos || []}
+              variant="accent"
+              className="rounded-md overflow-hidden"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              {trailer.photos?.length || 0} photos available
+            </p>
           </div>
         </div>
 
