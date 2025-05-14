@@ -4,6 +4,7 @@ import { Drawer } from "../../../components/Drawer";
 import { Button } from "../../../components/Button";
 import { Trailer } from "../types/trailer.types";
 import { TrailerPhotosCarousel } from "./TrailerPhotosCarousel";
+import { TrailerAvailabilityStatus } from "./TrailerAvailabilityStatus";
 
 // Define props for the drawer component
 interface TrailerDetailsDrawerProps {
@@ -115,24 +116,10 @@ export const TrailerDetailsDrawer = ({
                   Availability
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      trailer.availability.isAvailable
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {trailer.availability.isAvailable
-                      ? "Available"
-                      : "Unavailable"}
-                  </span>
-                  {!trailer.availability.isAvailable &&
-                    trailer.availability.nextAvailableDate && (
-                      <span className="ml-2 text-xs text-gray-500">
-                        Available from:{" "}
-                        {formatDate(trailer.availability.nextAvailableDate)}
-                      </span>
-                    )}
+                  <TrailerAvailabilityStatus
+                    isAvailable={trailer.availability.isAvailable}
+                    nextAvailableDate={trailer.availability.nextAvailableDate}
+                  />
                 </dd>
               </div>
               <div>
@@ -157,7 +144,7 @@ export const TrailerDetailsDrawer = ({
                   Dimensions (L×W×H)
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {`${trailer.dimensions.length}m × ${trailer.dimensions.width}m × ${trailer.dimensions.height}m`}
+                  {`${trailer.dimensions.length}ft × ${trailer.dimensions.width}ft × ${trailer.dimensions.height}ft`}
                 </dd>
               </div>
               <div>
@@ -165,7 +152,7 @@ export const TrailerDetailsDrawer = ({
                   Empty Weight
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {trailer.weight.empty}kg
+                  {trailer.weight.empty}lbs
                 </dd>
               </div>
               <div>
@@ -173,7 +160,7 @@ export const TrailerDetailsDrawer = ({
                   Maximum Load
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {trailer.weight.maxLoad}kg
+                  {trailer.weight.maxLoad}lbs
                 </dd>
               </div>
               <div>
@@ -201,7 +188,7 @@ export const TrailerDetailsDrawer = ({
             </dl>
           </div>
         </div>
-        
+
         {/* Photos section */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Photos</h3>

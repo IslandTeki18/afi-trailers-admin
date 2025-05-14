@@ -21,18 +21,18 @@ export const TrailerAvailabilityStatus: React.FC<
   };
 
   return (
-    <div className={`inline-flex items-center ${className}`}>
+    <div className={`inline-flex items-baseline ${className}`}>
       <span
         className={`inline-block w-3 h-3 rounded-full mr-2 ${
           isAvailable ? "bg-green-500" : "bg-red-500"
         }`}
       />
       {showLabel && (
-        <span className="text-sm">
+        <span className="text-sm flex flex-col">
           {isAvailable ? "Available" : "Unavailable"}
           {!isAvailable && nextAvailableDate && (
             <span className="text-xs text-gray-500 ml-2">
-              Available from: {formatDate(nextAvailableDate)}
+              Available: {formatDate(nextAvailableDate)}
             </span>
           )}
         </span>
