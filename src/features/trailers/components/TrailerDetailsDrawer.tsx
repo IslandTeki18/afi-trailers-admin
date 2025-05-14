@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { Drawer } from "../../../components/Drawer";
+import { Button } from "../../../components/Button";
 import { Trailer } from "../types/trailer.types";
 
 // Define props for the drawer component
@@ -7,12 +8,14 @@ interface TrailerDetailsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   trailer: Trailer;
+  onEdit?: (trailer: Trailer) => void;
 }
 
 export const TrailerDetailsDrawer = ({
   isOpen,
   onClose,
   trailer,
+  onEdit,
 }: TrailerDetailsDrawerProps) => {
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return "Not scheduled";
@@ -37,29 +40,28 @@ export const TrailerDetailsDrawer = ({
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title={`${trailer.name} (ID: ${trailer._id})`}
+      title={`${trailer.name}`}
       position="right"
       maxWidth="lg"
     >
       <div className="space-y-8 pb-6">
+        {/* Trailer ID */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-md font-semibold text-gray-900">
+            Trailer ID: {trailer._id}
+          </h2>
+        </div>
         {/* Basic information section */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
             Basic Information
           </h3>
+          <p className="mt-2 text-sm text-gray-500">{trailer.description}</p>
           <div className="mt-4 border-t border-gray-200 pt-4">
             <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 md:grid-cols-3">
               <div>
                 <dt className="text-sm font-medium text-gray-500">Type</dt>
                 <dd className="mt-1 text-sm text-gray-900">{trailer.type}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Description
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {trailer.description || "No description available"}
-                </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Capacity</dt>
@@ -320,20 +322,22 @@ export const TrailerDetailsDrawer = ({
         )}
 
         {/* Action buttons */}
-        <div className="mt-8 flex justify-end space-x-3 bg-gray-50 p-4">
-          <button
-            type="button"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-            onClick={onClose}
-          >
+        <div className="mt-8 flex justify-end space-x-3 p-4">
+          <Button variant="gray" size="medium" onClick={onClose}>
             Close
-          </button>
-          <button
-            type="button"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+          </Button>
+
+          <Button
+            variant="base"
+            size="medium"
+            onClick={() => {
+              if (onEdit) {
+                onEdit(trailer);
+              }
+            }}
           >
             Edit Trailer
-          </button>
+          </Button>
         </div>
       </div>
     </Drawer>

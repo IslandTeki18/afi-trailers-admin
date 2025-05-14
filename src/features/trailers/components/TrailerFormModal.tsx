@@ -158,16 +158,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const { name } = e.target;
-
-    // Update form data with the selected option
     setFormData({
       ...formData,
       [name]: option.value,
     });
 
-    // Additional logic based on specific selects
     if (name === "type") {
-      // Example: Set default features based on trailer type
       const typeSpecificFeatures: Record<string, string[]> = {
         Dump: ["Heavy duty", "Hydraulic lift"],
         Enclosed: ["Weather protection", "Lockable"],
@@ -176,7 +172,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
       };
 
       if (typeSpecificFeatures[option.value]) {
-        // Only set default features if none are already set
         if (!formData.features || formData.features.length === 0) {
           setFormData((prev) => ({
             ...prev,
@@ -187,7 +182,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
     }
 
     if (name === "maintenanceStatus") {
-      // Example: If status changes to maintenance, suggest next available date
       if (option.value === "Maintenance") {
         const twoWeeksFromNow = new Date();
         twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
@@ -885,7 +879,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
         <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
           <Button
             type="button"
-            variant="primary"
+            variant="base"
             className="w-full sm:w-auto sm:ml-3"
             onClick={handleSubmitClick}
           >
@@ -893,7 +887,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
           </Button>
           <Button
             type="button"
-            variant="secondary"
+            variant="gray"
             onClick={onClose}
             className="mt-3 w-full sm:mt-0 sm:w-auto"
           >

@@ -1,4 +1,5 @@
 type ButtonVariant =
+"base"
   | "primary"
   | "secondary"
   | "accent"
@@ -6,6 +7,7 @@ type ButtonVariant =
   | "warning"
   | "info"
   | "error"
+  | "gray"
   | "link";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -43,6 +45,8 @@ export const Button: React.FC<ButtonProps> = ({
     error:
       "bg-error text-white hover:bg-error/80 disabled:bg-error-400 disabled:cursor-not-allowed",
     link: "text-base-500 hover:text-base-600 disabled:text-base-400 disabled:cursor-not-allowed",
+    gray: "bg-gray-500 text-white hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed",
+    base: "bg-base-500 text-white hover:bg-base-900 disabled:bg-base-400 disabled:cursor-not-allowed",
   };
 
   const combinedClasses = `${baseClasses} ${variantClasses[variant]} ${className}`;

@@ -15,9 +15,7 @@ export const TrailersPage = () => {
   const handleAddTrailer = async (trailerData: Trailer) => {
     try {
       await createTrailer(trailerData);
-
       setIsAddModalOpen(false);
-
       window.dispatchEvent(new CustomEvent("refetch-trailers"));
     } catch (error) {
       console.log("Error adding trailer:", error);
@@ -27,11 +25,12 @@ export const TrailersPage = () => {
 
   const handleEditTrailer = async (trailerData: Trailer) => {
     try {
-      const response = await updateTrailer(selectedTrailer?._id, trailerData);
+      await updateTrailer(selectedTrailer?._id, trailerData);
+      setIsEditModalOpen(false);
+      window.dispatchEvent(new CustomEvent("refetch-trailers"));
     } catch (error) {
       console.log("Error updating trailer:", error);
       alert("Failed to update trailer. Please try again.");
-      
     }
   };
 
@@ -70,7 +69,10 @@ export const TrailersPage = () => {
 
       <TrailerFormModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedTrailer(null);
+        }}
         onSubmit={handleAddTrailer}
         isEditing={false}
       />

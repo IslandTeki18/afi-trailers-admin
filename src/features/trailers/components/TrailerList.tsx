@@ -168,6 +168,7 @@ export const TrailerList: React.FC<TrailerListProps> = ({
           isOpen={isDrawerOpen}
           onClose={handleDrawerClose}
           trailer={selectedTrailer}
+          onEdit={handleTrailerEdit}
         />
       )}
     </div>
