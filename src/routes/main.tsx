@@ -18,6 +18,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LoginPage, ProtectedRoute, RoleGuard } from "@/features/auth";
+import BookingCalendarPage from "@/features/bookings/pages/BookingCalendarPage";
 
 // Layout component that incorporates Sidenav and Navbar
 const MainLayout = () => {
@@ -118,12 +119,26 @@ export const mainRoutes = [
       },
       {
         path: "/bookings",
-        element: (
-          <RoleGuard
-            allowedRoles={["admin", "staff"]}
-            element={<BookingPage />}
-          />
-        ),
+        children: [
+          {
+            index: true,
+            element: (
+              <RoleGuard
+                allowedRoles={["admin", "staff"]}
+                element={<BookingPage />}
+              />
+            ),
+          },
+          {
+            path: "calendar",
+            element: (
+              <RoleGuard
+                allowedRoles={["admin", "staff"]}
+                element={<BookingCalendarPage />}
+              />
+            ),
+          },
+        ],
       },
       {
         path: "/customers",

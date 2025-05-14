@@ -9,7 +9,7 @@ interface Option {
 interface ComboboxProps {
   label: string;
   options: Option[];
-  variant?: "primary" | "secondary" | "success" | "danger";
+  variant?: "primary" | "secondary" | "success" | "danger" | "base" | "gray";
   onSelect?: (option: Option) => void;
 }
 
@@ -77,6 +77,20 @@ export const AutoComplete: React.FC<ComboboxProps> = ({
         button: "hover:text-red-500 dark:hover:text-red-400",
         list: "shadow-lg",
         option: "hover:bg-red-600 hover:text-white dark:hover:bg-red-700",
+      },
+      base: {
+        input:
+          "ring-gray-300 dark:ring-gray-600 focus:ring-base-600 dark:focus:ring-base-500",
+        button: "hover:text-base-500 dark:hover:text-base-400",
+        list: "shadow-lg",
+        option: "hover:bg-base-600 hover:text-white dark:hover:bg-base-700",
+      },
+       gray: {
+        input:
+          "ring-gray-300 dark:ring-gray-600 focus:ring-gray-600 dark:focus:ring-gray-500",
+        button: "hover:text-gray-600 dark:hover:text-gray-300",
+        list: "shadow-md",
+        option: "hover:bg-gray-200 dark:hover:bg-gray-700",
       },
     };
 

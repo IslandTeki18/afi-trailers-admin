@@ -7,9 +7,11 @@ import { CreateBookingModal } from "../components/CreateBookingModal";
 import { BookingTable } from "../components/BookingTable";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { PlusIcon } from "@heroicons/react/20/solid";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 // Mock data for demonstration
-const mockBookings: Booking[] = [
+export const mockBookings: Booking[] = [
   {
     _id: "b001",
     customerId: "c001",
@@ -61,6 +63,7 @@ const mockBookings: Booking[] = [
 ];
 
 export const BookingPage = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [filteredBookings, setFilteredBookings] =
     useState<Booking[]>(mockBookings);
@@ -282,9 +285,10 @@ export const BookingPage = () => {
             Manage all your bookings in one place
           </p>
         </div>
-        <div>
+        <div className="flex space-x-2">
+          <Button variant="base" onClick={() => navigate("calendar")}>View Booking Calendar</Button>
           <Button
-            variant="primary"
+            variant="base"
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center"
           >
@@ -300,7 +304,7 @@ export const BookingPage = () => {
             <div className="w-full">
               <Tabs
                 items={tabItems}
-                variant="primary"
+                variant="base"
                 defaultTab={activeTab}
                 onTabChange={(tabId) => setActiveTab(tabId)}
                 className="mb-4"
@@ -310,7 +314,7 @@ export const BookingPage = () => {
               <AutoComplete
                 label="Search bookings"
                 options={searchOptions}
-                variant="primary"
+                variant="base"
                 onSelect={handleSearchOptionSelect}
               />
             </div>
