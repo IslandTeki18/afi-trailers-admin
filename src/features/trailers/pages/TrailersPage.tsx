@@ -25,7 +25,7 @@ export const TrailersPage = () => {
 
   const handleEditTrailer = async (trailerData: Trailer) => {
     try {
-      await updateTrailer(selectedTrailer?._id, trailerData);
+      await updateTrailer(selectedTrailer?._id!, trailerData);
       setIsEditModalOpen(false);
       window.dispatchEvent(new CustomEvent("refetch-trailers"));
     } catch (error) {

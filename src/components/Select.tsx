@@ -7,10 +7,12 @@ type SelectVariant =
   | "success"
   | "warning"
   | "info"
+  | "base"
+  | "gray"
   | "error";
 
 // Improve type safety with a proper type for options
-type SelectOption = {
+export type SelectOption = {
   value: string;
   label: string;
   [key: string]: any; // Allow additional properties
@@ -54,6 +56,8 @@ export const Select: React.FC<SelectProps> = ({
     info: "bg-info border-info text-base-500 focus:ring-2 focus:ring-info/60 ring-1 ring-inset ring-info",
     error:
       "bg-error border-error text-white focus:ring-2 focus:ring-error/60 ring-1 ring-inset ring-error",
+      base: "bg-base-100 border-base text-base-500 focus:ring-2 focus:ring-base/60 ring-1 ring-inset ring-base",
+    gray: "bg-gray-100 border-gray-300 text-gray-800 focus:ring-2 focus:ring-gray/60 ring-1 ring-inset ring-gray",
   };
 
   const combinedClasses = `${baseClasses} ${variantClasses[variant]} ${className}`;

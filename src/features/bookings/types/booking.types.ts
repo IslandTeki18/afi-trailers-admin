@@ -1,19 +1,18 @@
-export type BookingStatus =
-  | "pending"
-  | "signed"
-  | "paid"
-  | "active"
-  | "completed"
-  | "canceled";
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
 export interface Booking {
-  id: string;
-  trailerId: string;
+  _id: string;
   customerId: string;
-  serviceType: "full_service" | "self_service";
-  startDate: string;
-  endDate: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  trailerId: string;
+  trailerName: string;
+  startDate: Date;
+  endDate: Date;
   status: BookingStatus;
-  agreementUrl?: string;
-  paymentStatus?: "unpaid" | "paid";
+  totalAmount: number;
+  depositAmount: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
