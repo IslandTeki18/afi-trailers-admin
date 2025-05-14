@@ -155,31 +155,54 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
-    const date = new Date(value);
-    if (!isNaN(date.getTime())) {
-      // Always set to 8:00 AM
-      date.setHours(8, 0, 0, 0);
+    if (!value) return;
+
+    const date = new Date(value + "T12:00:00");
+
+    console.log(`Selected ${field}: ${format(date, "EEE, MMM d, yyyy HH:mm")}`);
+
+    setBookingData((prev) => ({
+      ...prev,
+      [field]: date,
+    }));
+
+    if (
+      field === "startDate" &&
+      bookingData.endDate &&
+      date > bookingData.endDate
+    ) {
+      const newEndDate = new Date(date);
+      newEndDate.setDate(newEndDate.getDate() + 1);
+      newEndDate.setHours(12, 0, 0, 0);
+
+      console.log(
+        `Auto-updating endDate: ${format(newEndDate, "EEE, MMM d, yyyy HH:mm")}`
+      );
 
       setBookingData((prev) => ({
         ...prev,
-        [field]: date,
+        endDate: newEndDate,
       }));
     }
   };
 
+  const formatDateForInput = (date: Date | undefined) => {
+    if (!date) return "";
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     if (bookingData.startDate && bookingData.endDate) {
-      const start = new Date(bookingData.startDate);
-      const end = new Date(bookingData.endDate);
-
-      // For the duration calculation, we need exact days
-      // Add one day to the calculation since end date is exclusive in our system
-      // The rental is from 8am on start date to 8am on the day AFTER end date
-      const days = Math.ceil(
-        (end.getTime() - start.getTime()) / (1000 * 3600 * 24)
+      const diffTime = Math.abs(
+        bookingData.endDate.getTime() - bookingData.startDate.getTime()
       );
-
-      setDuration(days > 0 ? days : 1);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDuration(diffDays + 1);
     }
   }, [bookingData.startDate, bookingData.endDate]);
 
@@ -200,11 +223,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       }));
     }
   }, [initialValues]);
-
-  const formatDateForInput = (date: Date | undefined) => {
-    if (!date) return "";
-    return format(new Date(date), "yyyy-MM-dd");
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -319,23 +337,22 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       </div>
 
       {/* Dates */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label
             htmlFor="startDate"
             className="block text-sm font-medium text-gray-700"
           >
-            Start Date (8:00 AM pickup)
+            Pick-up Date
           </label>
           <input
             type="date"
+            name="startDate"
             id="startDate"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-              errors.startDate ? "border-red-500" : ""
-            }`}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             value={formatDateForInput(bookingData.startDate)}
             onChange={(e) => handleDateChange("startDate", e.target.value)}
-            min={format(new Date(), "yyyy-MM-dd")}
+            required
           />
           {errors.startDate && (
             <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
@@ -346,25 +363,26 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             htmlFor="endDate"
             className="block text-sm font-medium text-gray-700"
           >
-            End Date (last full day, return 8:00 AM next day)
+            Last Day of Use
           </label>
           <input
             type="date"
+            name="endDate"
             id="endDate"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-              errors.endDate ? "border-red-500" : ""
-            }`}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             value={formatDateForInput(bookingData.endDate)}
             onChange={(e) => handleDateChange("endDate", e.target.value)}
-            min={
-              bookingData.startDate
-                ? formatDateForInput(bookingData.startDate)
-                : ""
-            }
+            required
           />
           {errors.endDate && (
             <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
           )}
+          <p className="mt-1 text-xs text-gray-500">
+            Return trailer by 8:00 AM on{" "}
+            {bookingData.endDate
+              ? format(addDays(new Date(bookingData.endDate), 1), "MMM d, yyyy")
+              : "[select date]"}
+          </p>
         </div>
       </div>
 
@@ -442,7 +460,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             Booking Summary
           </h3>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <dt className="text-gray-500">Pickup:</dt>
+            <dt className="text-gray-500">Start Date:</dt>
             <dd className="text-gray-900">
               {bookingData.startDate
                 ? format(bookingData.startDate, "MMM d, yyyy")
@@ -450,19 +468,34 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               at 8:00 AM
             </dd>
 
-            <dt className="text-gray-500">Return:</dt>
+            <dt className="text-gray-500">End Date:</dt>
             <dd className="text-gray-900">
               {bookingData.endDate
-                ? format(
-                    addDays(new Date(bookingData.endDate), 1),
-                    "MMM d, yyyy"
-                  )
-                : "-"}{" "}
-              at 8:00 AM
+                ? format(bookingData.endDate, "MMM d, yyyy")
+                : "-"}
             </dd>
 
             <dt className="text-gray-500">Duration:</dt>
             <dd className="text-gray-900">{duration} day(s)</dd>
+
+            <dt className="text-gray-500">Charged Days:</dt>
+            <dd className="text-gray-900">
+              {bookingData.startDate && bookingData.endDate ? (
+                <span>
+                  {format(bookingData.startDate, "MMM d")} to{" "}
+                  {format(
+                    new Date(
+                      new Date(bookingData.endDate).setDate(
+                        bookingData.endDate.getDate() - 1
+                      )
+                    ),
+                    "MMM d"
+                  )}
+                </span>
+              ) : (
+                "-"
+              )}
+            </dd>
 
             <dt className="text-gray-500">Daily Rate:</dt>
             <dd className="text-gray-900">

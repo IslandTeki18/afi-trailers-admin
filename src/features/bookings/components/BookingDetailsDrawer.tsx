@@ -28,10 +28,6 @@ export const BookingDetailsDrawer = ({
     return format(date, "MMM dd, yyyy");
   };
 
-  const formatDateTime = (date: Date) => {
-    return format(date, "MMM dd, yyyy h:mm a");
-  };
-
   const getStatusBadgeClass = (status: BookingStatus) => {
     switch (status) {
       case "confirmed":
@@ -48,7 +44,14 @@ export const BookingDetailsDrawer = ({
   };
 
   const calculateBookingDuration = (start: Date, end: Date) => {
-    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
+    // When calculating duration, include both start and end day
+    // For a Monday to Friday booking, that's 5 days, not 4
+    const diffInDays = Math.floor(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Add 1 to include both start and end days in the duration
+    return diffInDays;
   };
 
   const handleStatusChange = (newStatus: BookingStatus) => {
@@ -225,14 +228,16 @@ export const BookingDetailsDrawer = ({
             <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
               <div>
                 <dt className="text-sm font-medium text-gray-500">
-                  Start Date
+                  Pick-up Date
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
                   {formatDate(booking.startDate)}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">End Date</dt>
+                <dt className="text-sm font-medium text-gray-500">
+                  Last Day of Use
+                </dt>
                 <dd className="mt-1 text-sm text-gray-900">
                   {formatDate(booking.endDate)}
                 </dd>
@@ -240,22 +245,28 @@ export const BookingDetailsDrawer = ({
               <div>
                 <dt className="text-sm font-medium text-gray-500">Duration</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {calculateBookingDuration(booking.startDate, booking.endDate)}{" "}
+                  {calculateBookingDuration(
+                    booking.startDate,
+                    booking.endDate
+                  ) + 1}{" "}
                   day(s)
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Created</dt>
+                <dt className="text-sm font-medium text-gray-500">
+                  Pick-up Time
+                </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {formatDateTime(booking.createdAt)}
+                  {formatDate(booking.startDate)} (8:00 AM)
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">
-                  Last Updated
+                  Return Date
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {formatDateTime(booking.updatedAt)}
+                  {formatDate(new Date(booking.endDate.getTime() + 86400000))}{" "}
+                  (8:00 AM)
                 </dd>
               </div>
             </dl>

@@ -74,7 +74,7 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
 
   useEffect(() => {
     setTrailers(initialTrailers);
-  }, [initialTrailers])
+  }, [initialTrailers]);
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -84,7 +84,7 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
         <DialogPanel className="w-full max-w-md rounded-lg bg-white p-6 sm:p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <DialogTitle className="text-lg font-medium text-gray-900">
-              Create New Booking
+              Schedule Trailer Rental
             </DialogTitle>
             <button
               type="button"

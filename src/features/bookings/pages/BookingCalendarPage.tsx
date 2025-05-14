@@ -21,8 +21,6 @@ export const BookingCalendarPage = () => {
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  console.log("Trailers:", trailers);
-
   useEffect(() => {
     const fetchTrailersData = async () => {
       try {
@@ -60,17 +58,15 @@ export const BookingCalendarPage = () => {
   }, []);
 
   const handleCreateBooking = (newBooking: Partial<Booking>) => {
-
-    // Ensure start date is set to 8:00 AM
     let startDate = new Date(newBooking.startDate || new Date());
-    startDate.setHours(8, 0, 0, 0);
+    startDate.setHours(12, 0, 0, 0);
 
-    // Ensure end date is set to 8:00 AM
     let endDate = new Date(newBooking.endDate || new Date());
-    endDate.setHours(8, 0, 0, 0);
+    endDate.setHours(12, 0, 0, 0);
 
-    // The actual rental period is from startDate at 8am to the day AFTER endDate at 8am
-    // This is because the user enters the last day of possession, not the return day
+    const returnDate = new Date(endDate);
+    returnDate.setDate(returnDate.getDate() + 1);
+    returnDate.setHours(8, 0, 0, 0);
 
     const bookingWithId: Booking = {
       ...newBooking,
@@ -79,10 +75,8 @@ export const BookingCalendarPage = () => {
       _id: `b${bookings.length + 1}`.padStart(4, "0"),
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: newBooking.status || "pending", // Default status if not provided
+      status: newBooking.status || "pending",
     } as Booking;
-
-    console.log("New Booking:", bookingWithId);
 
     setBookings([bookingWithId, ...bookings]);
     setIsCreateModalOpen(false);

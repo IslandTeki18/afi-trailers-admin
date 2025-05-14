@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { format } from "date-fns";
+import { format, isWithinInterval } from "date-fns"; // Add these imports
 import { Button } from "../../../components/Button";
 import { Booking, BookingStatus } from "../types/booking.types";
+import BookingDetailsPanel from "./BookingDetailsPanel";
 
 // Updated FullCalendar imports
 import FullCalendar from "@fullcalendar/react";
@@ -9,6 +10,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
+import { BookingLegendStatus } from "./BookingLegendStatus";
 
 // Status to color mapping for booking events
 const statusColors: Record<BookingStatus, string> = {
@@ -43,29 +45,28 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   onDateSelect,
 }) => {
   const calendarRef = useRef<FullCalendar>(null);
-  const [selectedEvent, setSelectedEvent] = useState<{
-    id: string;
-    title: string;
-    start: string;
-    status: BookingStatus;
-    bookingId: string;
-  } | null>(null);
+  const [selectedEvents, setSelectedEvents] = useState<
+    Array<{
+      id: string;
+      title: string;
+      start: string;
+      status: BookingStatus;
+      bookingId: string;
+    }>
+  >([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentMonthTitle, setCurrentMonthTitle] = useState("");
+  const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
   // Convert bookings to FullCalendar events
   const calendarEvents = bookings.map((booking) => {
-    // Extract dates and set to 8am
     const startDate = new Date(booking.startDate);
-    startDate.setHours(8, 0, 0, 0);
 
-    // For display in FullCalendar, we need to add a day to the end date
-    // This is because the booking model stores the last day of possession as endDate
-    // but FullCalendar treats end dates as exclusive
+    startDate.setHours(12, 0, 0, 0);
+
     const endDate = new Date(booking.endDate);
-    endDate.setHours(8, 0, 0, 0);
+    endDate.setHours(12, 0, 0, 0);
 
-    // Create an adjusted end date for FullCalendar (day after the booking ends)
     const displayEndDate = new Date(endDate);
     displayEndDate.setDate(displayEndDate.getDate() + 1);
 
@@ -73,7 +74,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       id: booking._id,
       title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
       start: startDate,
-      end: displayEndDate, // Use the adjusted end date for display
+      end: displayEndDate,
       allDay: true,
       backgroundColor: statusColors[booking.status],
       borderColor: statusColors[booking.status],
@@ -83,6 +84,13 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
         customerPhone: booking.customer.phoneNumber,
         totalAmount: booking.totalAmount,
         depositAmount: booking.depositAmount,
+        pickupDate: format(startDate, "MMM d, yyyy"),
+        lastDayOfUse: format(endDate, "MMM d, yyyy"),
+        returnDate: format(displayEndDate, "MMM d, yyyy"),
+        description: `Pickup: ${format(startDate, "MMM d")} | Return: ${format(
+          displayEndDate,
+          "MMM d"
+        )} | Status: ${booking.status}`,
       },
     };
   });
@@ -93,7 +101,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       const api = calendarRef.current.getApi();
       setCurrentMonthTitle(api.view.title);
 
-      // Add listener for view changes
       const handleViewDidMount = () => {
         setCurrentMonthTitle(api.view.title);
       };
@@ -151,14 +158,54 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     }
   };
 
-  // Handle date selection
+  // Handle date selection - updated to find all bookings on selected date
   const handleDateSelect = (selectInfo: any) => {
+    const selectedDay = new Date(selectInfo.start);
+    selectedDay.setHours(12, 0, 0, 0);
+
+    setLastSelectedDate(selectedDay);
+
+    // Find all bookings for the selected day
+    const eventsOnDay = bookings.filter((booking) => {
+      const startDate = new Date(booking.startDate);
+      startDate.setHours(12, 0, 0, 0);
+
+      const endDate = new Date(booking.endDate);
+      endDate.setHours(12, 0, 0, 0);
+
+      // Add one day to endDate for proper interval comparison
+      const displayEndDate = new Date(endDate);
+      displayEndDate.setDate(displayEndDate.getDate() + 1);
+
+      // Check if selected day falls within this booking's range
+      return isWithinInterval(selectedDay, {
+        start: startDate,
+        end: displayEndDate,
+      });
+    });
+
+    if (eventsOnDay.length > 0) {
+      const formattedEvents = eventsOnDay.map((booking) => ({
+        id: booking._id,
+        title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
+        start: booking.startDate.toString(),
+        status: booking.status,
+        bookingId: booking._id,
+      }));
+
+      setSelectedEvents(formattedEvents);
+      setIsDetailsOpen(true);
+    } else {
+      setSelectedEvents([]);
+      setIsDetailsOpen(false);
+    }
+
     if (onDateSelect) {
       onDateSelect(selectInfo.start);
     }
   };
 
-  // Handle event click
+  // Handle event click - now adds just the clicked event to the list
   const handleEventClick = (clickInfo: any) => {
     const event = {
       id: clickInfo.event.id,
@@ -168,8 +215,12 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       bookingId: clickInfo.event.id,
     };
 
-    setSelectedEvent(event);
+    // Replace the selection with just this event
+    setSelectedEvents([event]);
     setIsDetailsOpen(true);
+
+    // Also update the lastSelectedDate for consistency
+    setLastSelectedDate(new Date(clickInfo.event.start));
   };
 
   return (
@@ -263,74 +314,30 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       </div>
 
       {/* Legend for booking statuses */}
-      <div className="mt-4 p-4 bg-white rounded-lg shadow">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Legend</h3>
-        <div className="flex flex-wrap gap-4">
-          {Object.entries(statusColors).map(([status, color], idx) => (
-            <div key={`${status}-${idx}`} className="flex items-center">
-              <div
-                className="h-4 w-4 rounded-full mr-2"
-                style={{ backgroundColor: color }}
-              ></div>
-              <span className="text-sm text-gray-600 capitalize">{status}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <BookingLegendStatus statusColors={statusColors} />
 
       {/* Booking details panel */}
-      {isDetailsOpen && selectedEvent && (
-        <div className="mt-6 overflow-hidden rounded-lg bg-white shadow">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">
-              Booking Details
+      {selectedEvents.length > 0 && (
+        <div className="mt-6">
+          <div className="px-4 py-3 bg-gray-100 rounded-t-lg">
+            <h3 className="text-lg font-medium text-gray-900">
+              Bookings for{" "}
+              {lastSelectedDate
+                ? format(lastSelectedDate, "MMMM d, yyyy")
+                : "Selected Date"}
             </h3>
-            <Button
-              variant="gray"
-              size="small"
-              onClick={() => setIsDetailsOpen(false)}
-            >
-              Close
-            </Button>
           </div>
-          <div className="border-t border-gray-200">
-            <div className="bg-white px-4 py-5 sm:px-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-base font-medium text-gray-700">Event</h4>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {selectedEvent.title}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-base font-medium text-gray-700">Date</h4>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {format(new Date(selectedEvent.start), "MMMM d, yyyy")}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-base font-medium text-gray-700">
-                    Status
-                  </h4>
-                  <p className="mt-1 text-sm text-gray-600 capitalize">
-                    {selectedEvent.status}
-                  </p>
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    variant={variant}
-                    onClick={() =>
-                      onViewBooking && onViewBooking(selectedEvent.bookingId)
-                    }
-                  >
-                    View Full Details
-                  </Button>
-                </div>
-              </div>
-            </div>
+          <div className="space-y-4">
+            {selectedEvents.map((event) => (
+              <BookingDetailsPanel
+                key={event.id}
+                isOpen={isDetailsOpen}
+                onClose={() => setIsDetailsOpen(false)}
+                selectedEvent={event}
+                onViewBooking={onViewBooking}
+                variant={variant}
+              />
+            ))}
           </div>
         </div>
       )}
