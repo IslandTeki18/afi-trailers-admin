@@ -55,11 +55,25 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   // Convert bookings to FullCalendar events
   const calendarEvents = bookings.map((booking) => {
+    // Extract dates and set to 8am
+    const startDate = new Date(booking.startDate);
+    startDate.setHours(8, 0, 0, 0);
+
+    // For display in FullCalendar, we need to add a day to the end date
+    // This is because the booking model stores the last day of possession as endDate
+    // but FullCalendar treats end dates as exclusive
+    const endDate = new Date(booking.endDate);
+    endDate.setHours(8, 0, 0, 0);
+
+    // Create an adjusted end date for FullCalendar (day after the booking ends)
+    const displayEndDate = new Date(endDate);
+    displayEndDate.setDate(displayEndDate.getDate() + 1);
+
     return {
       id: booking._id,
       title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
-      start: booking.startDate,
-      end: booking.endDate,
+      start: startDate,
+      end: displayEndDate, // Use the adjusted end date for display
       allDay: true,
       backgroundColor: statusColors[booking.status],
       borderColor: statusColors[booking.status],

@@ -164,7 +164,7 @@ export const BookingDetailsDrawer = ({
               <div>
                 <dt className="text-sm font-medium text-gray-500">Name</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {booking.customer.name}
+                  {booking.customer.firstName} {booking.customer.lastName}
                 </dd>
               </div>
               <div>
@@ -176,7 +176,7 @@ export const BookingDetailsDrawer = ({
               <div>
                 <dt className="text-sm font-medium text-gray-500">Phone</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {booking.customer.phone}
+                  {booking.customer.phoneNumber}
                 </dd>
               </div>
               <div>

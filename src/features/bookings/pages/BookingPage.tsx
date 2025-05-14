@@ -276,12 +276,6 @@ export const BookingPage = () => {
           onUpdateStatus={handleUpdateBookingStatus}
         />
       )}
-
-      <CreateBookingModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateBooking}
-      />
     </div>
   );
 };
