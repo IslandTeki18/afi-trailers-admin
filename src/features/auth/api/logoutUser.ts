@@ -10,7 +10,7 @@ export const logoutUser = async (): Promise<void> => {
     // Remove Authorization header from axios instance
     delete axiosInstance.defaults.headers.common["Authorization"];
   } catch (error) {
-    console.error("Logout error:", error);
+    console.log("Logout error:", error);
     throw error;
   }
 };

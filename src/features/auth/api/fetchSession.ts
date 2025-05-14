@@ -22,7 +22,7 @@ export const fetchSession = async (): Promise<User> => {
     });
     return response.data;
   } catch (error) {
-    console.error("Session fetch error:", error);
+    console.log("Session fetch error:", error);
     throw error;
   }
 };

@@ -22,7 +22,7 @@ export const refreshToken = async (): Promise<string> => {
 
     return newToken;
   } catch (error) {
-    console.error("Token refresh error:", error);
+    console.log("Token refresh error:", error);
     localStorage.removeItem("auth_token");
     delete axiosInstance.defaults.headers.common["Authorization"];
     throw error;

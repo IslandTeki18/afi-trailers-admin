@@ -41,7 +41,7 @@ export const updateTrailer = async (
       axiosError.message ||
       "An unknown error occurred while updating the trailer";
 
-    console.error("Error updating trailer:", errorMessage);
+    console.log("Error updating trailer:", errorMessage);
 
     return {
       success: false,

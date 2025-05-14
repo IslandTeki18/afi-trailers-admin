@@ -12,7 +12,7 @@ export const fetchTrailer = async (id: string): Promise<Trailer> => {
 
     return response.data.trailer;
   } catch (error) {
-    console.error(`Failed to fetch trailer with ID ${id}:`, error);
+    console.log(`Failed to fetch trailer with ID ${id}:`, error);
     throw error;
   }
 };

@@ -34,7 +34,7 @@ export const loginUser = async (
 
     throw new Error("No user data returned from login");
   } catch (error) {
-    console.error("Login error:", error);
+    console.log("Login error:", error);
     throw error;
   }
 };

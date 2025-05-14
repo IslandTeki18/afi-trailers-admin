@@ -16,8 +16,6 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
 }) => {
   const { user } = useAuth();
 
-  console.log("User in RoleGuard:", user);
-
   if (user === null) {
     return <Navigate to="/login" />;
   }

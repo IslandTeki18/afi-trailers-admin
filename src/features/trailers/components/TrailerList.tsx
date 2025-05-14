@@ -5,6 +5,7 @@ import { Trailer } from "../types/trailer.types";
 import { fetchTrailers } from "../api/fetchTrailers";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "../../../components/Button";
+import { deleteTrailer } from "../api/deleteTrailer";
 
 interface TrailerListProps {
   onEditClick?: (trailer: Trailer) => void;
@@ -25,11 +26,9 @@ export const TrailerList: React.FC<TrailerListProps> = ({
       setIsLoading(true);
       try {
         const response = await fetchTrailers();
-
-        console.log("Fetched trailers:", response);
         setTrailers(response.data);
       } catch (error) {
-        console.error("Error fetching trailers:", error);
+        console.log("Error fetching trailers:", error);
       } finally {
         setIsLoading(false);
       }
@@ -37,11 +36,9 @@ export const TrailerList: React.FC<TrailerListProps> = ({
 
     fetchTrailersData();
 
-    // Add event listener for refetching trailers
     const handleRefetch = () => fetchTrailersData();
     window.addEventListener("refetch-trailers", handleRefetch);
 
-    // Clean up event listener
     return () => window.removeEventListener("refetch-trailers", handleRefetch);
   }, []);
 
@@ -90,6 +87,19 @@ export const TrailerList: React.FC<TrailerListProps> = ({
   // Handle drawer close
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);
+  };
+
+  // Handle trailer delete
+  const handleTrailerDelete = async (trailerId: string) => {
+    try {
+      await deleteTrailer(trailerId);
+
+      setTrailers(trailers.filter((trailer) => trailer._id !== trailerId));
+
+      window.dispatchEvent(new CustomEvent("refetch-trailers"));
+    } catch (error) {
+      console.log("Error deleting trailer:", error);
+    }
   };
 
   const formattedData = trailers.map((trailer) => ({
@@ -169,6 +179,7 @@ export const TrailerList: React.FC<TrailerListProps> = ({
           onClose={handleDrawerClose}
           trailer={selectedTrailer}
           onEdit={handleTrailerEdit}
+          onDelete={handleTrailerDelete}
         />
       )}
     </div>

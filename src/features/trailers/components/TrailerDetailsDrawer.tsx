@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import { Drawer } from "../../../components/Drawer";
 import { Button } from "../../../components/Button";
@@ -9,6 +10,7 @@ interface TrailerDetailsDrawerProps {
   onClose: () => void;
   trailer: Trailer;
   onEdit?: (trailer: Trailer) => void;
+  onDelete?: (trailerId: string) => void;
 }
 
 export const TrailerDetailsDrawer = ({
@@ -16,7 +18,10 @@ export const TrailerDetailsDrawer = ({
   onClose,
   trailer,
   onEdit,
+  onDelete
 }: TrailerDetailsDrawerProps) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return "Not scheduled";
     if (date instanceof Date && !isNaN(date.getTime())) {
@@ -34,6 +39,25 @@ export const TrailerDetailsDrawer = ({
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  // Add handler for delete confirmation
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  // Add handler for confirming deletion
+  const confirmDelete = () => {
+    if (onDelete) {
+      onDelete(trailer._id!);
+      onClose(); // Close the drawer after deletion
+    }
+    setShowDeleteConfirm(false);
+  };
+
+  // Add handler for canceling deletion
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -323,6 +347,9 @@ export const TrailerDetailsDrawer = ({
 
         {/* Action buttons */}
         <div className="mt-8 flex justify-end space-x-3 p-4">
+          <Button variant="error" size="medium" onClick={handleDeleteClick}>
+            Delete Trailer
+          </Button>
           <Button variant="gray" size="medium" onClick={onClose}>
             Close
           </Button>
@@ -340,6 +367,27 @@ export const TrailerDetailsDrawer = ({
           </Button>
         </div>
       </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Confirm Deletion
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Are you sure you want to delete trailer "{trailer.name}"? This
+              action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <Button variant="gray" size="medium" onClick={cancelDelete}>
+                Cancel
+              </Button>
+              <Button variant="error" size="medium" onClick={confirmDelete}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Drawer>
   );
 };

@@ -8,7 +8,7 @@ export const fetchTrailers = async () => {
 
     return response.data || [];
   } catch (error) {
-    console.error("Failed to fetch trailers:", error);
+    console.log("Failed to fetch trailers:", error);
     throw error;
   }
 };

@@ -96,7 +96,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    console.log(e.target);
     const { name, value, type } = e.target;
 
     // Handle nested properties

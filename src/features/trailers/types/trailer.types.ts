@@ -1,4 +1,5 @@
 export type Trailer = {
+  _id?: string;
   name: string;
   capacity: string;
   dimensions: {
