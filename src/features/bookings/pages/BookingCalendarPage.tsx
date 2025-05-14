@@ -58,7 +58,6 @@ export const BookingCalendarPage = () => {
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     console.log(`Selected date: ${format(date, "yyyy-MM-dd")}`);
-    // You could filter bookings by this date if needed
   };
 
   return (

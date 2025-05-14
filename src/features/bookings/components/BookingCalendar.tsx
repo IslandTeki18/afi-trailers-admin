@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { Button } from "../../../components/Button";
 import { Booking, BookingStatus } from "../types/booking.types";
@@ -51,12 +51,13 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     bookingId: string;
   } | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [currentMonthTitle, setCurrentMonthTitle] = useState("");
 
   // Convert bookings to FullCalendar events
   const calendarEvents = bookings.map((booking) => {
     return {
       id: booking._id,
-      title: `${booking.trailerName} - ${booking.customerName}`,
+      title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
       start: booking.startDate,
       end: booking.endDate,
       allDay: true,
@@ -64,19 +65,39 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       borderColor: statusColors[booking.status],
       extendedProps: {
         status: booking.status,
-        customerEmail: booking.customerEmail,
-        customerPhone: booking.customerPhone,
+        customerEmail: booking.customer.email,
+        customerPhone: booking.customer.phoneNumber,
         totalAmount: booking.totalAmount,
         depositAmount: booking.depositAmount,
       },
     };
   });
 
-  // Navigation methods
+  // Update the month title when the view changes
+  useEffect(() => {
+    if (calendarRef.current) {
+      const api = calendarRef.current.getApi();
+      setCurrentMonthTitle(api.view.title);
+
+      // Add listener for view changes
+      const handleViewDidMount = () => {
+        setCurrentMonthTitle(api.view.title);
+      };
+
+      api.on("datesSet", handleViewDidMount);
+
+      return () => {
+        api.off("datesSet", handleViewDidMount);
+      };
+    }
+  }, []);
+
+  // Update handlers to maintain month title
   const handleToday = () => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.today();
+      setCurrentMonthTitle(calendarApi.view.title);
 
       if (onDateSelect) {
         onDateSelect(new Date());
@@ -88,6 +109,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.prev();
+      setCurrentMonthTitle(calendarApi.view.title);
 
       if (onDateSelect && calendarApi.getDate()) {
         onDateSelect(calendarApi.getDate());
@@ -99,6 +121,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.next();
+      setCurrentMonthTitle(calendarApi.view.title);
 
       if (onDateSelect && calendarApi.getDate()) {
         onDateSelect(calendarApi.getDate());
@@ -106,11 +129,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     }
   };
 
-  // View change handlers
   const handleViewChange = (viewType: string) => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.changeView(viewType);
+      setCurrentMonthTitle(calendarApi.view.title);
     }
   };
 
@@ -135,30 +158,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     setIsDetailsOpen(true);
   };
 
-  // Get button color class based on variant
-  const getButtonColorClass = (variant: string) => {
-    switch (variant) {
-      case "primary":
-        return "bg-primary-600 hover:bg-primary-700 text-white";
-      case "secondary":
-        return "bg-secondary-600 hover:bg-secondary-700 text-white";
-      case "accent":
-        return "bg-accent-600 hover:bg-accent-700 text-white";
-      case "error":
-        return "bg-error hover:bg-error/90 text-white";
-      case "gray":
-        return "bg-gray-600 hover:bg-gray-700 text-white";
-      case "info":
-        return "bg-info hover:bg-info/90 text-white";
-      case "base":
-        return "bg-base-600 hover:bg-base-700 text-white";
-      case "gray":
-        return "bg-gray-600 hover:bg-gray-700 text-white";
-      default:
-        return "bg-primary-600 hover:bg-primary-700 text-white";
-    }
-  };
-
   return (
     <div className="booking-calendar space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -173,6 +172,10 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             Next
           </Button>
         </div>
+
+        <h2 className="text-xl font-semibold text-gray-800">
+          {currentMonthTitle}
+        </h2>
 
         <div className="flex flex-wrap items-center space-x-2">
           <Button
@@ -226,7 +229,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             listPlugin,
           ]}
           initialView="dayGridMonth"
-          headerToolbar={false} // We're using our own header controls
+          headerToolbar={false}
           events={calendarEvents}
           selectable={true}
           selectMirror={true}
@@ -237,6 +240,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
           eventClick={handleEventClick}
           height="auto"
           contentHeight={800}
+          datesSet={(dateInfo) => {
+            setCurrentMonthTitle(
+              calendarRef.current?.getApi().view.title || ""
+            );
+          }}
         />
       </div>
 

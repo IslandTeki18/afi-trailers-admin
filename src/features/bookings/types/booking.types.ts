@@ -1,11 +1,9 @@
+import { Customer } from "@/features/customers/types/customer.types";
 export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
 export interface Booking {
   _id: string;
-  customerId: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
+  customer: Customer
   trailerId: string;
   trailerName: string;
   startDate: Date;

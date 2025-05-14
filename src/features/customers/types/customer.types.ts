@@ -1,9 +1,38 @@
 export interface Customer {
-  id: string;
-  name: string;
+  _id?: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  phone: string;
-  createdAt: string;
+  phoneNumber: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  driverLicense?: {
+    number: string;
+    expirationDate: Date;
+    state: string;
+  };
+  dateOfBirth: Date;
+  rentalHistory?: string[]; 
+  paymentMethods?: string[]; 
+  preferences?: {
+    notificationPreferences: {
+      email: boolean;
+      sms: boolean;
+    };
+    favoriteTrailers?: string[];
+  };
+  accountStatus: "active" | "suspended" | "inactive";
+  verificationStatus?: {
+    isEmailVerified: boolean;
+    isPhoneVerified: boolean;
+  };
   notes?: string;
-  flagged?: boolean;
+  lastLogin?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }

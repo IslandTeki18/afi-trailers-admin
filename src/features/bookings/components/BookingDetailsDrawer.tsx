@@ -164,19 +164,19 @@ export const BookingDetailsDrawer = ({
               <div>
                 <dt className="text-sm font-medium text-gray-500">Name</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {booking.customerName}
+                  {booking.customer.name}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Email</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {booking.customerEmail}
+                  {booking.customer.email}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Phone</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {booking.customerPhone}
+                  {booking.customer.phone}
                 </dd>
               </div>
               <div>
@@ -184,7 +184,7 @@ export const BookingDetailsDrawer = ({
                   Customer ID
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {booking.customerId}
+                  {booking.customer._id}
                 </dd>
               </div>
             </dl>

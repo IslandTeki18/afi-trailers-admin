@@ -6,61 +6,10 @@ import { BookingDetailsDrawer } from "../components/BookingDetailsDrawer";
 import { CreateBookingModal } from "../components/CreateBookingModal";
 import { BookingTable } from "../components/BookingTable";
 import { Booking, BookingStatus } from "../types/booking.types";
-import { PlusIcon } from "@heroicons/react/20/solid";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 
 // Mock data for demonstration
-export const mockBookings: Booking[] = [
-  {
-    _id: "b001",
-    customerId: "c001",
-    customerName: "John Doe",
-    customerEmail: "john.doe@example.com",
-    customerPhone: "(555) 123-4567",
-    trailerId: "t001",
-    trailerName: "Utility Trailer 5x8",
-    startDate: new Date(2025, 4, 15),
-    endDate: new Date(2025, 4, 17),
-    status: "confirmed",
-    totalAmount: 120.0,
-    depositAmount: 50.0,
-    createdAt: new Date(2025, 4, 1),
-    updatedAt: new Date(2025, 4, 1),
-  },
-  {
-    _id: "b002",
-    customerId: "c002",
-    customerName: "Jane Smith",
-    customerEmail: "jane.smith@example.com",
-    customerPhone: "(555) 987-6543",
-    trailerId: "t002",
-    trailerName: "Cargo Trailer 6x12",
-    startDate: new Date(2025, 4, 20),
-    endDate: new Date(2025, 4, 25),
-    status: "pending",
-    totalAmount: 250.0,
-    depositAmount: 75.0,
-    createdAt: new Date(2025, 4, 5),
-    updatedAt: new Date(2025, 4, 5),
-  },
-  {
-    _id: "b003",
-    customerId: "c003",
-    customerName: "Robert Johnson",
-    customerEmail: "robert.j@example.com",
-    customerPhone: "(555) 456-7890",
-    trailerId: "t003",
-    trailerName: "Car Hauler Trailer",
-    startDate: new Date(2025, 4, 10),
-    endDate: new Date(2025, 4, 12),
-    status: "completed",
-    totalAmount: 180.0,
-    depositAmount: 60.0,
-    createdAt: new Date(2025, 3, 25),
-    updatedAt: new Date(2025, 4, 13),
-  },
-];
+export const mockBookings: Booking[] = [];
 
 export const BookingPage = () => {
   const navigate = useNavigate();
@@ -79,13 +28,13 @@ export const BookingPage = () => {
 
   // Create search options for AutoComplete component
   const searchOptions = useMemo(() => {
-    const options = [];
+    const options: any[] = [];
 
     // Add customer name options
     bookings.forEach((booking) => {
       options.push({
         id: `customer-${booking._id}`,
-        name: booking.customerName,
+        name: booking.customer.firstName + " " + booking.customer.lastName,
       });
     });
 
@@ -129,7 +78,10 @@ export const BookingPage = () => {
       switch (optionType) {
         case "customer":
           result = result.filter(
-            (booking) => booking.customerName.toLowerCase() === searchValue
+            (booking) => {
+              const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`;
+              return customerName.toLowerCase() === searchValue;
+            }
           );
           break;
         case "trailer":
@@ -146,7 +98,7 @@ export const BookingPage = () => {
           if (searchTerm) {
             result = result.filter(
               (booking) =>
-                booking.customerName
+                booking.customer.firstName
                   .toLowerCase()
                   .includes(searchTerm.toLowerCase()) ||
                 booking.trailerName
@@ -160,7 +112,7 @@ export const BookingPage = () => {
       // Standard search behavior if no option is selected
       result = result.filter(
         (booking) =>
-          booking.customerName
+          booking.customer.firstName
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           booking.trailerName
@@ -286,7 +238,9 @@ export const BookingPage = () => {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="base" onClick={() => navigate("calendar")}>View Booking Calendar</Button>
+          <Button variant="base" onClick={() => navigate("calendar")}>
+            View Booking Calendar
+          </Button>
         </div>
       </div>
 
