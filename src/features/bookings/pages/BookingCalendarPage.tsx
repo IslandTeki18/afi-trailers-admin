@@ -13,10 +13,10 @@ import {
   validateBookingData,
 } from "../api/createBooking";
 import { useToast } from "@/hooks/useToast";
+import { Trailer } from "@/features/trailers/types/trailer.types";
 
 // Use the same mock data as BookingPage
 import { mockBookings } from "./BookingPage";
-import { Trailer } from "@/features/trailers/types/trailer.types";
 
 export const BookingCalendarPage = () => {
   const { addToast } = useToast();
@@ -46,12 +46,10 @@ export const BookingCalendarPage = () => {
           );
           setTrailers(trailersData.data);
         }
-        // Check if trailersData is an array directly
         else if (Array.isArray(trailersData)) {
           console.log("Setting trailers directly from array:", trailersData);
           setTrailers(trailersData);
         }
-        // If we have no valid data, set an empty array
         else {
           console.error("Invalid trailer data format", trailersData);
           setTrailers([]);
@@ -113,7 +111,6 @@ export const BookingCalendarPage = () => {
     bookingId: string,
     newStatus: BookingStatus
   ) => {
-    // In a real application, this would make an API call
     const updatedBookings = bookings.map((booking) =>
       booking._id === bookingId
         ? { ...booking, status: newStatus, updatedAt: new Date() }
@@ -127,7 +124,6 @@ export const BookingCalendarPage = () => {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    console.log(`Selected date: ${format(date, "yyyy-MM-dd")}`);
   };
 
   return (

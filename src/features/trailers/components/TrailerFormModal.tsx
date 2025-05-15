@@ -73,8 +73,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   const [formData, setFormData] = useState<Trailer>(
     (initialData || defaultTrailer) as Trailer
   );
-
-  // State for array inputs that need special handling
   const [feature, setFeature] = useState<string>("");
   const [towReq, setTowReq] = useState<string>("");
   const [photoUrl, setPhotoUrl] = useState<string>("");
@@ -285,6 +283,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="2xl">
       <form onSubmit={handleSubmit}>
         <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+          {/* Header */}
           <div className="mb-4">
             <h3 className="text-lg font-medium text-gray-900">
               {isEditing ? "Edit Trailer" : "Add New Trailer"}
@@ -875,6 +874,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
           </div>
         </div>
 
+        {/* Footer with buttons */}
         <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
           <Button
             type="button"
