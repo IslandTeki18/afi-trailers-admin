@@ -6,7 +6,7 @@ import { axiosInstance } from "../../../libs/axios";
  * @param id The ID of the trailer to fetch
  * @returns Promise with the trailer data
  */
-export const fetchTrailer = async (id: string): Promise<Trailer> => {
+export const fetchTrailerById = async (id: string): Promise<Trailer> => {
   try {
     const response = await axiosInstance.get(`/trailers/${id}`);
 

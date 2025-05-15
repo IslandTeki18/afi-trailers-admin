@@ -7,12 +7,19 @@ import { Booking, BookingStatus } from "../types/booking.types";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { fetchTrailers } from "@/features/trailers/api/fetchTrailers";
+import {
+  createBooking,
+  CreateBookingPayload,
+  validateBookingData,
+} from "../api/createBooking";
+import { useToast } from "@/hooks/useToast";
 
 // Use the same mock data as BookingPage
 import { mockBookings } from "./BookingPage";
 import { Trailer } from "@/features/trailers/types/trailer.types";
 
 export const BookingCalendarPage = () => {
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
@@ -57,7 +64,7 @@ export const BookingCalendarPage = () => {
     fetchTrailersData();
   }, []);
 
-  const handleCreateBooking = (newBooking: Partial<Booking>) => {
+  const handleCreateBooking = async (newBooking: Booking) => {
     let startDate = new Date(newBooking.startDate || new Date());
     startDate.setHours(12, 0, 0, 0);
 
@@ -68,17 +75,29 @@ export const BookingCalendarPage = () => {
     returnDate.setDate(returnDate.getDate() + 1);
     returnDate.setHours(8, 0, 0, 0);
 
-    const bookingWithId: Booking = {
+    const bookingWithId: CreateBookingPayload = {
       ...newBooking,
       startDate: startDate,
       endDate: endDate,
-      _id: `b${bookings.length + 1}`.padStart(4, "0"),
-      createdAt: new Date(),
-      updatedAt: new Date(),
       status: newBooking.status || "pending",
-    } as Booking;
+      customerId: newBooking.customer._id!,
+      serviceType: "full",
+      totalCost: newBooking.totalAmount || 0,
+    };
 
-    setBookings([bookingWithId, ...bookings]);
+    const { isValid, errors } = validateBookingData(bookingWithId);
+    if (!isValid) {
+      addToast({
+        message: `Error creating booking: ${Object.values(errors).join(", ")}`,
+        variant: "error",
+        duration: 5000,
+      });
+      return;
+    }
+
+    const createdBooking = await createBooking(bookingWithId);
+
+    setBookings([createdBooking, ...bookings]);
     setIsCreateModalOpen(false);
   };
 

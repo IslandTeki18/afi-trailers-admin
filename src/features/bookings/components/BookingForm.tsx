@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { addDays, format } from "date-fns";
-import { Button } from "../../../components/Button";
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
+import { Select, SelectOption } from "@/components/Select";
+import { Textarea } from "@/components/Textarea";
 import { Customer } from "@/features/customers/types/customer.types";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { Trailer } from "@/features/trailers/types/trailer.types";
@@ -10,8 +13,8 @@ import { Trailer } from "@/features/trailers/types/trailer.types";
 interface BookingFormProps {
   customers: Customer[];
   trailers: Trailer[];
-  initialValues?: Partial<Booking>;
-  onSubmit: (bookingData: Partial<Booking>) => void;
+  initialValues?: Booking;
+  onSubmit: (bookingData: Booking) => void;
   onCancel?: () => void;
   isLoading?: boolean;
   variant?:
@@ -31,17 +34,38 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
-  variant = "primary",
+  variant = "base",
 }) => {
-  const [bookingData, setBookingData] = useState<Partial<Booking>>(
+  const [bookingData, setBookingData] = useState<Booking>(
     initialValues || {
       status: "pending" as BookingStatus,
       startDate: new Date(),
       endDate: addDays(new Date(), 1),
       depositAmount: 0,
       totalAmount: 0,
+      trailerId: "",
+      trailerName: "",
+      serviceType: "self",
+      specialRequests: "",
+      deliveryAddress: {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "United States",
+      },
+      hasTowingInsurance: false,
+      customer: {
+        firstName: "",
+        lastName: "",
+        email: "",
+        phoneNumber: "",
+        dateOfBirth: new Date(),
+        accountStatus: "active",
+      },
     }
   );
+  const [isDumpTrailer, setIsDumpTrailer] = useState<boolean>(false);
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<
     string | undefined
@@ -93,14 +117,25 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         const totalAmount = trailer.rentalPrices.fullDay * duration;
         const depositAmount = (totalAmount * depositPercentage) / 100;
 
+        // Check if this is a dump trailer (either by category or name)
+        const isDump =
+          trailer.type === "Dump" ||
+          trailer.name.toLowerCase().includes("dump");
+
+        setIsDumpTrailer(isDump);
+
         setBookingData((prev) => ({
           ...prev,
           totalAmount,
           depositAmount,
-          trailerId: trailer._id,
+          trailerId: trailer._id || "",
           trailerName: trailer.name,
+          // Reset service type to "self" if not a dump trailer
+          serviceType: isDump ? prev.serviceType : "self",
         }));
       }
+    } else {
+      setIsDumpTrailer(false);
     }
   }, [selectedTrailerId, duration, depositPercentage, trailers]);
 
@@ -224,325 +259,544 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   }, [initialValues]);
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Customer Selection with Search */}
-      <div>
-        <label
-          htmlFor="customerSearch"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Customer Search
-        </label>
-        <input
-          type="text"
-          id="customerSearch"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm mb-2"
-          placeholder="Search by name, email or phone"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+  const customerOptions: SelectOption[] = [
+    { value: "", label: "Select a customer" },
+    ...filteredCustomers.map((customer) => ({
+      value: customer._id as string,
+      label: `${customer.firstName} ${customer.lastName} (${customer.email})`,
+      customer: customer,
+    })),
+  ];
 
-        <div className="mt-1">
+  const trailerOptions: SelectOption[] = [
+    { value: "", label: "Select a trailer" },
+    ...trailers.map((trailer) => ({
+      value: trailer._id as string,
+      label: `${trailer.name} ($${trailer.rentalPrices.fullDay}/day)`,
+      trailer: trailer, // Include the full trailer object for reference
+    })),
+  ];
+
+  const serviceTypeOptions: SelectOption[] = [
+    { value: "self", label: "Self Service (Customer Pickup)" },
+    { value: "full", label: "Full Service (Delivery)" },
+  ];
+
+  const statusOptions: SelectOption[] = [
+    { value: "pending", label: "Pending" },
+    { value: "confirmed", label: "Confirmed" },
+    { value: "cancelled", label: "Cancelled" },
+    { value: "completed", label: "Completed" },
+  ];
+
+  const depositOptions: SelectOption[] = [
+    { value: "0", label: "0% (No Deposit)" },
+    { value: "25", label: "25%" },
+    { value: "50", label: "50%" },
+    { value: "100", label: "100% (Full Payment)" },
+  ];
+
+  return (
+    <div className="overflow-y-auto max-h-[80vh] px-1 py-2">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Customer Selection with Search */}
+        <div>
           <label
-            htmlFor="customer"
-            className="block text-sm font-medium text-gray-700"
+            htmlFor="customerSearch"
+            className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Select Customer
+            Customer Search
           </label>
-          <select
-            id="customer"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-              errors.customer ? "border-red-500" : ""
-            }`}
-            value={selectedCustomerId || ""}
-            onChange={(e) => setSelectedCustomerId(e.target.value)}
-          >
-            <option value="">Select a customer</option>
-            {filteredCustomers.map((customer) => (
-              <option key={customer._id} value={customer._id}>
-                {customer.firstName} {customer.lastName} ({customer.email})
-              </option>
-            ))}
-          </select>
-          {errors.customer && (
-            <p className="mt-1 text-sm text-red-600">{errors.customer}</p>
+          <Input
+            type="text"
+            id="customerSearch"
+            className="mb-2"
+            placeholder="Search by name, email or phone"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            variant={variant}
+          />
+
+          <div className="mt-1">
+            <label
+              htmlFor="customer"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Select Customer
+            </label>
+            <Select
+              id="customer"
+              options={customerOptions}
+              className="mt-1"
+              value={selectedCustomerId || ""}
+              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              variant={errors.customer ? "error" : variant}
+            />
+            {errors.customer && (
+              <p className="mt-1 text-sm text-red-600">{errors.customer}</p>
+            )}
+          </div>
+
+          {/* Customer info display remains unchanged */}
+          {selectedCustomerId && (
+            <div className="mt-2 text-sm">
+              {(() => {
+                const customer = customers.find(
+                  (c) => c._id === selectedCustomerId
+                );
+                if (customer) {
+                  return (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p>
+                        <span className="font-medium">Phone:</span>{" "}
+                        {customer.phoneNumber}
+                      </p>
+                      {customer.address && (
+                        <p className="mt-1">
+                          <span className="font-medium">Address:</span>{" "}
+                          {customer.address.street}, {customer.address.city},{" "}
+                          {customer.address.state} {customer.address.zipCode}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
           )}
         </div>
 
-        {selectedCustomerId && (
-          <div className="mt-2 text-sm">
-            {(() => {
-              const customer = customers.find(
-                (c) => c._id === selectedCustomerId
-              );
-              if (customer) {
-                return (
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p>
-                      <span className="font-medium">Phone:</span>{" "}
-                      {customer.phoneNumber}
-                    </p>
-                    {customer.address && (
-                      <p className="mt-1">
-                        <span className="font-medium">Address:</span>{" "}
-                        {customer.address.street}, {customer.address.city},{" "}
-                        {customer.address.state} {customer.address.zipCode}
-                      </p>
-                    )}
-                  </div>
-                );
+        {/* Trailer Selection */}
+        <div>
+          <label
+            htmlFor="trailer"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Trailer
+          </label>
+          <Select
+            id="trailer"
+            options={trailerOptions}
+            className="mt-1"
+            value={selectedTrailerId || ""}
+            onChange={(e) => setSelectedTrailerId(e.target.value)}
+            variant={errors.trailer ? "error" : variant}
+          />
+          {errors.trailer && (
+            <p className="mt-1 text-sm text-red-600">{errors.trailer}</p>
+          )}
+        </div>
+
+        {/* Service Type Selection */}
+        {isDumpTrailer && (
+          <div>
+            <label
+              htmlFor="serviceType"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Service Type
+            </label>
+            <Select
+              id="serviceType"
+              options={serviceTypeOptions}
+              className="mt-1"
+              value={bookingData.serviceType || "self"}
+              onChange={(e) =>
+                setBookingData((prev) => ({
+                  ...prev,
+                  serviceType: e.target.value as "full" | "self",
+                }))
               }
-              return null;
-            })()}
+              variant={errors.serviceType ? "error" : variant}
+            />
+            {errors.serviceType && (
+              <p className="mt-1 text-sm text-red-600">{errors.serviceType}</p>
+            )}
           </div>
         )}
-      </div>
 
-      {/* Trailer Selection */}
-      <div>
-        <label
-          htmlFor="trailer"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Trailer
-        </label>
-        <select
-          id="trailer"
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-            errors.trailer ? "border-red-500" : ""
-          }`}
-          value={selectedTrailerId || ""}
-          onChange={(e) => setSelectedTrailerId(e.target.value)}
-        >
-          <option value="">Select a trailer</option>
-          {trailers.map((trailer) => (
-            <option key={trailer._id} value={trailer._id}>
-              {trailer.name} (${trailer.rentalPrices.fullDay}/day)
-            </option>
-          ))}
-        </select>
-        {errors.trailer && (
-          <p className="mt-1 text-sm text-red-600">{errors.trailer}</p>
-        )}
-      </div>
-
-      <div className="mb-4 p-3 bg-blue-50 text-sm rounded-md border border-blue-200">
-        <p className="font-medium text-blue-800">Rental Period Info:</p>
-        <p className="text-blue-700">
-          Rentals run from 8:00 AM on the start date until 8:00 AM on the day{" "}
-          <strong>after</strong> the end date. The end date is the last full day
-          of possession.
-        </p>
-      </div>
-
-      {/* Dates */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div>
-          <label
-            htmlFor="startDate"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Pick-up Date
-          </label>
-          <input
-            type="date"
-            name="startDate"
-            id="startDate"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formatDateForInput(bookingData.startDate)}
-            onChange={(e) => handleDateChange("startDate", e.target.value)}
-            required
-          />
-          {errors.startDate && (
-            <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
-          )}
-        </div>
-        <div>
-          <label
-            htmlFor="endDate"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Last Day of Use
-          </label>
-          <input
-            type="date"
-            name="endDate"
-            id="endDate"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            value={formatDateForInput(bookingData.endDate)}
-            onChange={(e) => handleDateChange("endDate", e.target.value)}
-            required
-          />
-          {errors.endDate && (
-            <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            Return trailer by 8:00 AM on{" "}
-            {bookingData.endDate
-              ? format(addDays(new Date(bookingData.endDate), 1), "MMM d, yyyy")
-              : "[select date]"}
+        {/* Rental Period Info */}
+        <div className="mb-4 p-3 bg-blue-50 text-sm rounded-md border border-blue-200">
+          <p className="font-medium text-blue-800">Rental Period Info:</p>
+          <p className="text-blue-700">
+            Rentals run from 8:00 AM on the start date until 8:00 AM on the day{" "}
+            <strong>after</strong> the end date. The end date is the last full
+            day of possession.
           </p>
         </div>
-      </div>
 
-      {/* Status */}
-      <div>
-        <label
-          htmlFor="status"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Booking Status
-        </label>
-        <select
-          id="status"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          value={bookingData.status as string}
-          onChange={(e) =>
-            setBookingData((prev) => ({
-              ...prev,
-              status: e.target.value as BookingStatus,
-            }))
-          }
-        >
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="completed">Completed</option>
-        </select>
-      </div>
-
-      {/* Deposit Percentage */}
-      <div>
-        <label
-          htmlFor="depositPercentage"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Deposit Percentage
-        </label>
-        <select
-          id="depositPercentage"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          value={depositPercentage}
-          onChange={(e) => setDepositPercentage(Number(e.target.value))}
-        >
-          <option value="0">0% (No Deposit)</option>
-          <option value="25">25%</option>
-          <option value="50">50%</option>
-          <option value="100">100% (Full Payment)</option>
-        </select>
-      </div>
-
-      {/* Notes field */}
-      {/* <div>
-        <label
-          htmlFor="notes"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Notes
-        </label>
-        <textarea
-          id="notes"
-          rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          placeholder="Add any special instructions or notes about this booking"
-          value={bookingData.notes || ""}
-          onChange={(e) =>
-            setBookingData((prev) => ({ ...prev, notes: e.target.value }))
-          }
-        />
-      </div> */}
-
-      {/* Summary */}
-      {selectedTrailerId && (
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
-            Booking Summary
-          </h3>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <dt className="text-gray-500">Start Date:</dt>
-            <dd className="text-gray-900">
-              {bookingData.startDate
-                ? format(bookingData.startDate, "MMM d, yyyy")
-                : "-"}{" "}
-              at 8:00 AM
-            </dd>
-
-            <dt className="text-gray-500">End Date:</dt>
-            <dd className="text-gray-900">
+        {/* Dates */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="startDate"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Pick-up Date
+            </label>
+            <Input
+              type="date"
+              name="startDate"
+              id="startDate"
+              variant={errors.startDate ? "error" : variant}
+              className="mt-1"
+              value={formatDateForInput(bookingData.startDate)}
+              onChange={(e) => handleDateChange("startDate", e.target.value)}
+              required
+            />
+            {errors.startDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
+            )}
+          </div>
+          <div>
+            <label
+              htmlFor="endDate"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Last Day of Use
+            </label>
+            <Input
+              type="date"
+              name="endDate"
+              id="endDate"
+              variant={errors.endDate ? "error" : variant}
+              className="mt-1"
+              value={formatDateForInput(bookingData.endDate)}
+              onChange={(e) => handleDateChange("endDate", e.target.value)}
+              required
+            />
+            {errors.endDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              Return trailer by 8:00 AM on{" "}
               {bookingData.endDate
-                ? format(bookingData.endDate, "MMM d, yyyy")
-                : "-"}
-            </dd>
-
-            <dt className="text-gray-500">Duration:</dt>
-            <dd className="text-gray-900">{duration} day(s)</dd>
-
-            <dt className="text-gray-500">Charged Days:</dt>
-            <dd className="text-gray-900">
-              {bookingData.startDate && bookingData.endDate ? (
-                <span>
-                  {format(bookingData.startDate, "MMM d")} to{" "}
-                  {format(
-                    new Date(
-                      new Date(bookingData.endDate).setDate(
-                        bookingData.endDate.getDate() - 1
-                      )
-                    ),
-                    "MMM d"
-                  )}
-                </span>
-              ) : (
-                "-"
-              )}
-            </dd>
-
-            <dt className="text-gray-500">Daily Rate:</dt>
-            <dd className="text-gray-900">
-              $
-              {trailers
-                .find((t) => t._id === selectedTrailerId)
-                ?.rentalPrices.fullDay.toFixed(2)}
-              /day
-            </dd>
-
-            <dt className="text-gray-500">Total Amount:</dt>
-            <dd className="text-gray-900">
-              ${bookingData.totalAmount?.toFixed(2)}
-            </dd>
-
-            <dt className="text-gray-500">Deposit (Due Now):</dt>
-            <dd className="text-gray-900">
-              ${bookingData.depositAmount?.toFixed(2)}
-            </dd>
-
-            <dt className="text-gray-500">Balance Due:</dt>
-            <dd className="text-gray-900">
-              $
-              {(
-                (bookingData.totalAmount || 0) -
-                (bookingData.depositAmount || 0)
-              ).toFixed(2)}
-            </dd>
-          </dl>
+                ? format(
+                    addDays(new Date(bookingData.endDate), 1),
+                    "MMM d, yyyy"
+                  )
+                : "[select date]"}
+            </p>
+          </div>
         </div>
-      )}
 
-      <div className="flex justify-end space-x-3 mt-6">
-        {onCancel && (
-          <Button type="button" variant="gray" onClick={onCancel}>
-            Cancel
-          </Button>
+        {/* Status */}
+        <div>
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Booking Status
+          </label>
+          <Select
+            id="status"
+            options={statusOptions}
+            className="mt-1"
+            value={bookingData.status as string}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                status: e.target.value as BookingStatus,
+              }))
+            }
+            variant={variant}
+          />
+        </div>
+
+        {/* Deposit Percentage */}
+        <div>
+          <label
+            htmlFor="depositPercentage"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Deposit Percentage
+          </label>
+          <Select
+            id="depositPercentage"
+            options={depositOptions}
+            className="mt-1"
+            value={depositPercentage.toString()}
+            onChange={(e) => setDepositPercentage(Number(e.target.value))}
+            variant={variant}
+          />
+        </div>
+
+        {/* Special Requests */}
+        <div>
+          <label
+            htmlFor="specialRequests"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Special Requests
+          </label>
+          <Textarea
+            id="specialRequests"
+            rows={3}
+            variant={variant}
+            placeholder="Any special instructions or requests"
+            value={bookingData.specialRequests || ""}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                specialRequests: e.target.value,
+              }))
+            }
+          />
+        </div>
+
+        {/* Delivery Address - Show only if "full" service is selected */}
+        {isDumpTrailer && bookingData.serviceType === "full" && (
+          <div className="bg-gray-50 p-4 rounded-md">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              Delivery Address
+            </h3>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="deliveryStreet"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Street
+                </label>
+                <Input
+                  type="text"
+                  id="deliveryStreet"
+                  variant={errors.deliveryAddress ? "error" : variant}
+                  value={bookingData.deliveryAddress?.street || ""}
+                  onChange={(e) =>
+                    setBookingData((prev) => ({
+                      ...prev,
+                      deliveryAddress: {
+                        ...(prev.deliveryAddress! || {}),
+                        street: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="deliveryCity"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  City
+                </label>
+                <Input
+                  type="text"
+                  id="deliveryCity"
+                  variant={variant}
+                  value={bookingData.deliveryAddress?.city || ""}
+                  onChange={(e) =>
+                    setBookingData((prev) => ({
+                      ...prev,
+                      deliveryAddress: {
+                        ...(prev.deliveryAddress! || {}),
+                        city: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="deliveryState"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  State
+                </label>
+                <Input
+                  type="text"
+                  id="deliveryState"
+                  variant={variant}
+                  value={bookingData.deliveryAddress?.state || ""}
+                  onChange={(e) =>
+                    setBookingData((prev) => ({
+                      ...prev,
+                      deliveryAddress: {
+                        ...(prev.deliveryAddress! || {}),
+                        state: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="deliveryZipCode"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  ZIP Code
+                </label>
+                <Input
+                  type="text"
+                  id="deliveryZipCode"
+                  variant={variant}
+                  value={bookingData.deliveryAddress?.zipCode || ""}
+                  onChange={(e) =>
+                    setBookingData((prev) => ({
+                      ...prev,
+                      deliveryAddress: {
+                        ...(prev.deliveryAddress! || {}),
+                        zipCode: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="deliveryCountry"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Country
+                </label>
+                <Input
+                  type="text"
+                  id="deliveryCountry"
+                  variant={variant}
+                  value={bookingData.deliveryAddress?.country || "Australia"}
+                  onChange={(e) =>
+                    setBookingData((prev) => ({
+                      ...prev,
+                      deliveryAddress: {
+                        ...(prev.deliveryAddress! || {}),
+                        country: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            {errors.deliveryAddress && (
+              <p className="mt-2 text-sm text-red-600">
+                {errors.deliveryAddress}
+              </p>
+            )}
+          </div>
         )}
-        <Button type="submit" variant={variant} disabled={isLoading}>
-          {isLoading
-            ? "Saving..."
-            : initialValues?._id
-            ? "Update Booking"
-            : "Create Booking"}
-        </Button>
-      </div>
-    </form>
+
+        {/* Insurance Purchase Option */}
+        <div className="flex items-center">
+          <input
+            id="insurancePurchased"
+            name="insurancePurchased"
+            type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            checked={bookingData.hasTowingInsurance || false}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                insurancePurchased: e.target.checked,
+              }))
+            }
+          />
+          <label
+            htmlFor="insurancePurchased"
+            className="ml-2 block text-sm text-gray-700"
+          >
+            Purchase insurance coverage
+          </label>
+        </div>
+
+        {/* Summary */}
+        {selectedTrailerId && (
+          <div className="bg-gray-50 p-4 rounded-md">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Booking Summary
+            </h3>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dt className="text-gray-500">Start Date:</dt>
+              <dd className="text-gray-900">
+                {bookingData.startDate
+                  ? format(bookingData.startDate, "MMM d, yyyy")
+                  : "-"}{" "}
+                at 8:00 AM
+              </dd>
+
+              <dt className="text-gray-500">End Date:</dt>
+              <dd className="text-gray-900">
+                {bookingData.endDate
+                  ? format(bookingData.endDate, "MMM d, yyyy")
+                  : "-"}
+              </dd>
+
+              <dt className="text-gray-500">Duration:</dt>
+              <dd className="text-gray-900">{duration} day(s)</dd>
+
+              <dt className="text-gray-500">Charged Days:</dt>
+              <dd className="text-gray-900">
+                {bookingData.startDate && bookingData.endDate ? (
+                  <span>
+                    {format(bookingData.startDate, "MMM d")} to{" "}
+                    {format(
+                      new Date(
+                        new Date(bookingData.endDate).setDate(
+                          bookingData.endDate.getDate() - 1
+                        )
+                      ),
+                      "MMM d"
+                    )}
+                  </span>
+                ) : (
+                  "-"
+                )}
+              </dd>
+
+              <dt className="text-gray-500">Daily Rate:</dt>
+              <dd className="text-gray-900">
+                $
+                {trailers
+                  .find((t) => t._id === selectedTrailerId)
+                  ?.rentalPrices.fullDay.toFixed(2)}
+                /day
+              </dd>
+
+              <dt className="text-gray-500">Total Amount:</dt>
+              <dd className="text-gray-900">
+                ${bookingData.totalAmount?.toFixed(2)}
+              </dd>
+
+              <dt className="text-gray-500">Deposit (Due Now):</dt>
+              <dd className="text-gray-900">
+                ${bookingData.depositAmount?.toFixed(2)}
+              </dd>
+
+              <dt className="text-gray-500">Balance Due:</dt>
+              <dd className="text-gray-900">
+                $
+                {(
+                  (bookingData.totalAmount || 0) -
+                  (bookingData.depositAmount || 0)
+                ).toFixed(2)}
+              </dd>
+            </dl>
+          </div>
+        )}
+
+        {/* Submit and Cancel Buttons */}
+        <div className="flex justify-end space-x-3 mt-6">
+          {onCancel && (
+            <Button type="button" variant="gray" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" variant={variant} disabled={isLoading}>
+            {isLoading
+              ? "Saving..."
+              : initialValues?._id
+              ? "Update Booking"
+              : "Create Booking"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 

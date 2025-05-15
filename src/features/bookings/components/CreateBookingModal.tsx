@@ -56,7 +56,7 @@ const mockCustomers = [
 interface CreateBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (booking: Partial<Booking>) => void;
+  onSubmit: (booking: Booking) => void;
   isLoading?: boolean;
   trailers?: Trailer[];
 }

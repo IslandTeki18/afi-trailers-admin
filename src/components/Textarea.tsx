@@ -13,6 +13,8 @@ interface TextareaProps
     | "success"
     | "warning"
     | "info"
+    | "base"
+    | "gray"
     | "error";
   darkMode?: boolean;
 }
@@ -41,6 +43,8 @@ export const Textarea: React.FC<TextareaProps> = ({
     warning: `bg-white text-neutral-900 outline-warning placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-warning`,
     success: `bg-white text-neutral-900 outline-success placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-success`,
     error: `bg-white text-neutral-900 outline-error placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-error`,
+    base: `bg-white text-base-900 outline-base-500 placeholder:text-base-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-base`,
+    gray: `bg-white text-neutral-900 outline-gray placeholder:text-neutral-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-gray`,
   };
 
   // Dark mode variants (if needed)
@@ -52,6 +56,8 @@ export const Textarea: React.FC<TextareaProps> = ({
     warning: `bg-base-500 text-white outline-warning placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-warning`,
     success: `bg-base-500 text-white outline-success placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-success`,
     error: `bg-base-500 text-white outline-error placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-error`,
+    base: `bg-base-500 text-white outline-base placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-base`,
+    gray: `bg-base-500 text-white outline-gray placeholder:text-base-200 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-gray`,
   };
 
   return (
