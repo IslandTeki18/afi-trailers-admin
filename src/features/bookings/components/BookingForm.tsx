@@ -8,8 +8,6 @@ import { Customer } from "@/features/customers/types/customer.types";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { Trailer } from "@/features/trailers/types/trailer.types";
 
-// Mock trailer data - in a real app, you would fetch this from your API
-
 interface BookingFormProps {
   customers: Customer[];
   trailers: Trailer[];
@@ -66,19 +64,73 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   );
   const [isDumpTrailer, setIsDumpTrailer] = useState<boolean>(false);
-
-  const [selectedCustomerId, setSelectedCustomerId] = useState<
-    string | undefined
-  >(initialValues?.customer?._id || "");
-  const [selectedTrailerId, setSelectedTrailerId] = useState<
-    string | undefined
-  >(initialValues?.trailerId || "");
+  const [selectedCustomerId, setSelectedCustomerId] = useState(
+    initialValues?.customer?._id || ""
+  );
+  const [selectedTrailerId, setSelectedTrailerId] = useState(
+    initialValues?.trailerId || ""
+  );
   const [duration, setDuration] = useState(1);
   const [depositPercentage, setDepositPercentage] = useState(25);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCustomers, setFilteredCustomers] =
     useState<Customer[]>(customers);
+
+  const customerOptions: SelectOption[] = [
+    { value: "", label: "Select a customer" },
+    ...filteredCustomers.map((customer) => ({
+      value: customer._id as string,
+      label: `${customer.firstName} ${customer.lastName} (${customer.email})`,
+      customer: customer,
+    })),
+  ];
+
+  const trailerOptions: SelectOption[] = [
+    { value: "", label: "Select a trailer" },
+    ...trailers.map((trailer) => ({
+      value: trailer._id as string,
+      label: `${trailer.name} ($${trailer.rentalPrices.fullDay}/day)`,
+      trailer: trailer,
+    })),
+  ];
+
+  const serviceTypeOptions: SelectOption[] = [
+    { value: "self", label: "Self Service (Customer Pickup)" },
+    { value: "full", label: "Full Service (Delivery)" },
+  ];
+
+  const statusOptions: SelectOption[] = [
+    { value: "pending", label: "Pending" },
+    { value: "confirmed", label: "Confirmed" },
+    { value: "cancelled", label: "Cancelled" },
+    { value: "completed", label: "Completed" },
+  ];
+
+  const depositOptions: SelectOption[] = [
+    { value: "0", label: "0% (No Deposit)" },
+    { value: "25", label: "25%" },
+    { value: "50", label: "50%" },
+    { value: "100", label: "100% (Full Payment)" },
+  ];
+
+  // Initialize date values with 8am timestamps
+  useEffect(() => {
+    if (!initialValues) {
+      const now = new Date();
+      now.setHours(8, 0, 0, 0);
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(8, 0, 0, 0);
+
+      setBookingData((prev) => ({
+        ...prev,
+        startDate: now,
+        endDate: tomorrow,
+      }));
+    }
+  }, [initialValues]);
 
   // Filter customers when search term changes
   useEffect(() => {
@@ -109,6 +161,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   }, [bookingData.startDate, bookingData.endDate]);
 
+  // Additional duration calculation
+  useEffect(() => {
+    if (bookingData.startDate && bookingData.endDate) {
+      const diffTime = Math.abs(
+        bookingData.endDate.getTime() - bookingData.startDate.getTime()
+      );
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDuration(diffDays + 1);
+    }
+  }, [bookingData.startDate, bookingData.endDate]);
+
   // Calculate total and deposit amounts when duration or selected trailer changes
   useEffect(() => {
     if (selectedTrailerId) {
@@ -117,7 +180,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         const totalAmount = trailer.rentalPrices.fullDay * duration;
         const depositAmount = (totalAmount * depositPercentage) / 100;
 
-        // Check if this is a dump trailer (either by category or name)
         const isDump =
           trailer.type === "Dump" ||
           trailer.name.toLowerCase().includes("dump");
@@ -130,7 +192,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           depositAmount,
           trailerId: trailer._id || "",
           trailerName: trailer.name,
-          // Reset service type to "self" if not a dump trailer
           serviceType: isDump ? prev.serviceType : "self",
         }));
       }
@@ -152,6 +213,33 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   }, [selectedCustomerId, customers]);
 
+  // Auto-fill delivery address when service type is "full" for dump trailers
+  useEffect(() => {
+    if (isDumpTrailer && bookingData.serviceType === "full") {
+      fillDeliveryAddressFromCustomer();
+    }
+  }, [bookingData.serviceType, isDumpTrailer, selectedCustomerId]);
+
+  // Function to fill delivery address from customer
+  const fillDeliveryAddressFromCustomer = () => {
+    if (selectedCustomerId) {
+      const customer = customers.find((c) => c._id === selectedCustomerId);
+      if (customer && customer.address) {
+        setBookingData((prev) => ({
+          ...prev,
+          deliveryAddress: {
+            street: customer.address?.street || "",
+            city: customer.address?.city || "",
+            state: customer.address?.state || "",
+            zipCode: customer.address?.zipCode || "",
+            country: customer.address?.country || "Australia",
+          },
+        }));
+      }
+    }
+  };
+
+  // Validate form data
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -181,6 +269,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -189,6 +278,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
+  // Handle date change and auto-update end date if necessary
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     if (!value) return;
 
@@ -221,6 +311,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
+  // Format date for input field
   const formatDateForInput = (date: Date | undefined) => {
     if (!date) return "";
 
@@ -230,71 +321,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
     return `${year}-${month}-${day}`;
   };
-
-  useEffect(() => {
-    if (bookingData.startDate && bookingData.endDate) {
-      const diffTime = Math.abs(
-        bookingData.endDate.getTime() - bookingData.startDate.getTime()
-      );
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setDuration(diffDays + 1);
-    }
-  }, [bookingData.startDate, bookingData.endDate]);
-
-  // When initializing dates, ensure they're set to 8am
-  useEffect(() => {
-    if (!initialValues) {
-      const now = new Date();
-      now.setHours(8, 0, 0, 0);
-
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(8, 0, 0, 0);
-
-      setBookingData((prev) => ({
-        ...prev,
-        startDate: now,
-        endDate: tomorrow,
-      }));
-    }
-  }, [initialValues]);
-
-  const customerOptions: SelectOption[] = [
-    { value: "", label: "Select a customer" },
-    ...filteredCustomers.map((customer) => ({
-      value: customer._id as string,
-      label: `${customer.firstName} ${customer.lastName} (${customer.email})`,
-      customer: customer,
-    })),
-  ];
-
-  const trailerOptions: SelectOption[] = [
-    { value: "", label: "Select a trailer" },
-    ...trailers.map((trailer) => ({
-      value: trailer._id as string,
-      label: `${trailer.name} ($${trailer.rentalPrices.fullDay}/day)`,
-      trailer: trailer, // Include the full trailer object for reference
-    })),
-  ];
-
-  const serviceTypeOptions: SelectOption[] = [
-    { value: "self", label: "Self Service (Customer Pickup)" },
-    { value: "full", label: "Full Service (Delivery)" },
-  ];
-
-  const statusOptions: SelectOption[] = [
-    { value: "pending", label: "Pending" },
-    { value: "confirmed", label: "Confirmed" },
-    { value: "cancelled", label: "Cancelled" },
-    { value: "completed", label: "Completed" },
-  ];
-
-  const depositOptions: SelectOption[] = [
-    { value: "0", label: "0% (No Deposit)" },
-    { value: "25", label: "25%" },
-    { value: "50", label: "50%" },
-    { value: "100", label: "100% (Full Payment)" },
-  ];
 
   return (
     <div className="overflow-y-auto max-h-[80vh] px-1 py-2">
@@ -551,6 +577,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Delivery Address
             </h3>
+            <Button
+              type="button"
+              variant="primary"
+              size="small"
+              onClick={fillDeliveryAddressFromCustomer}
+            >
+              Use Customer Address
+            </Button>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
