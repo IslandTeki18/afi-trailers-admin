@@ -281,11 +281,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   // Handle date change and auto-update end date if necessary
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     if (!value) return;
-
     const date = new Date(value + "T12:00:00");
-
-    console.log(`Selected ${field}: ${format(date, "EEE, MMM d, yyyy HH:mm")}`);
-
     setBookingData((prev) => ({
       ...prev,
       [field]: date,
@@ -299,10 +295,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       const newEndDate = new Date(date);
       newEndDate.setDate(newEndDate.getDate() + 1);
       newEndDate.setHours(12, 0, 0, 0);
-
-      console.log(
-        `Auto-updating endDate: ${format(newEndDate, "EEE, MMM d, yyyy HH:mm")}`
-      );
 
       setBookingData((prev) => ({
         ...prev,
