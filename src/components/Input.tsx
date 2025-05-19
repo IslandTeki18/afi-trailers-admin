@@ -24,6 +24,7 @@ export const Input: React.FC<InputProps> = ({
   className = "",
   id,
   darkMode = false,
+  required = false,
   ...props
 }) => {
   const baseClasses =
@@ -65,9 +66,15 @@ export const Input: React.FC<InputProps> = ({
           className="mb-1 font-medium text-neutral-900 dark:text-neutral-100"
         >
           {label}
+          {required && <span className="ml-1 text-error">*</span>}
         </label>
       )}
-      <input id={id} className={combinedClasses} {...props} />
+      <input
+        id={id}
+        className={combinedClasses}
+        required={required}
+        {...props}
+      />
     </div>
   );
 };

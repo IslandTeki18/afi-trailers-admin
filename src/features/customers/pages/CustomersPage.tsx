@@ -1,70 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { CustomerList } from "../components/CustomerList";
 import { CustomerDetailsDrawer } from "../components/CustomerDetailsDrawer";
 import { CustomerFormModal } from "../components/CustomerFormModal";
+import { createCustomer } from "../api/createCustomer";
+import { fetchCustomers } from "../api/fetchCustomers";
 import { Customer } from "../types/customer.types";
 import { Button } from "@/components/Button";
 import { useToast } from "@/hooks/useToast";
 
-// Mock data for customers to get started
-const mockCustomers: Customer[] = [
-  {
-    _id: "1",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phoneNumber: "5551234567",
-    dateOfBirth: new Date("1985-05-15"),
-    accountStatus: "active",
-    createdAt: "2023-01-15T08:30:00Z",
-    address: {
-      street: "123 Main St",
-      city: "Anytown",
-      state: "CA",
-      zipCode: "90210",
-      country: "USA",
-    },
-    verificationStatus: {
-      isEmailVerified: true,
-      isPhoneVerified: false,
-    },
-  },
-  {
-    _id: "2",
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    phoneNumber: "5559876543",
-    dateOfBirth: new Date("1990-08-22"),
-    accountStatus: "active",
-    createdAt: "2023-03-22T14:45:00Z",
-    preferences: {
-      notificationPreferences: {
-        email: true,
-        sms: true,
-      },
-    },
-  },
-  {
-    _id: "3",
-    firstName: "Robert",
-    lastName: "Johnson",
-    email: "robert.johnson@example.com",
-    phoneNumber: "5555551212",
-    dateOfBirth: new Date("1978-11-30"),
-    accountStatus: "inactive",
-    createdAt: "2022-11-05T10:15:00Z",
-    driverLicense: {
-      number: "DL12345678",
-      expirationDate: new Date("2025-10-15"),
-      state: "NY",
-    },
-    notes: "Previous rental had late return",
-  },
-];
-
 export const CustomersPage = () => {
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
@@ -77,8 +22,26 @@ export const CustomersPage = () => {
   const { addToast } = useToast();
 
   useEffect(() => {
-    // Existing code for data fetching...
+    
+
+    loadCustomers();
   }, []);
+
+  const loadCustomers = async () => {
+    try {
+      setIsLoading(true);
+      const data = await fetchCustomers();
+      setCustomers(data.customers);
+    } catch (error) {
+      console.error("Failed to fetch customers:", error);
+      addToast({
+        message: "Failed to load customers. Please try again.",
+        variant: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleViewDetails = (customerId: string) => {
     const customer = customers.find((c) => c._id === customerId);
@@ -107,7 +70,7 @@ export const CustomersPage = () => {
     });
   };
 
-  const handleAddCustomer = () => {
+  const handleAddCustomerModal = () => {
     setCustomerToEdit(undefined);
     setIsFormModalOpen(true);
   };
@@ -122,33 +85,51 @@ export const CustomersPage = () => {
     setCustomerToEdit(undefined);
   };
 
-  const handleFormSubmit = (customerData: Customer) => {
-    if (customerToEdit?._id) {
-      // Update existing customer
-      const updatedCustomers = customers.map((customer) =>
-        customer._id === customerToEdit._id
-          ? { ...customerData, _id: customerToEdit._id }
-          : customer
-      );
-      setCustomers(updatedCustomers);
+  const handleFormSubmit = async (customerData: Customer) => {
+    try {
+      setIsLoading(true);
+
+      if (customerToEdit?._id) {
+        // Update existing customer logic would go here
+        // For now, just log it
+        console.log("Updating customer:", customerData);
+
+        // You would add updateCustomer API call here
+        // const updatedCustomer = await updateCustomer(customerToEdit._id, customerData);
+
+        const updatedCustomers = customers.map((customer) =>
+          customer._id === customerToEdit._id
+            ? { ...customerData, _id: customerToEdit._id }
+            : customer
+        );
+        setCustomers(updatedCustomers);
+
+        addToast({
+          message: "Customer updated successfully",
+          variant: "success",
+        });
+      } else {
+        // Create new customer
+        const newCustomer = await createCustomer(customerData);
+
+        setCustomers([...customers, newCustomer]);
+
+        addToast({
+          message: "Customer added successfully",
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      console.log("Error submitting customer:", error);
       addToast({
-        message: "Customer updated successfully",
-        variant: "success",
+        message: "Failed to save customer. Please try again.",
+        variant: "error",
       });
-    } else {
-      // Add new customer with a temporary ID
-      const newCustomer: Customer = {
-        ...customerData,
-        _id: `temp-${Date.now()}`,
-      };
-      setCustomers([...customers, newCustomer]);
-      addToast({
-        message: "Customer added successfully",
-        variant: "success",
-      });
+    } finally {
+      setIsLoading(false);
+      setIsFormModalOpen(false);
+      setCustomerToEdit(undefined);
     }
-    setIsFormModalOpen(false);
-    setCustomerToEdit(undefined);
   };
 
   return (
@@ -160,7 +141,7 @@ export const CustomersPage = () => {
             Manage your customer database
           </p>
         </div>
-        <Button variant="base" onClick={handleAddCustomer}>
+        <Button variant="base" onClick={handleAddCustomerModal}>
           Add Customer
         </Button>
       </div>

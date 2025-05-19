@@ -37,10 +37,11 @@ export const Select: React.FC<SelectProps> = ({
   className = "",
   onChange,
   onOptionChange,
+  required = false,
   ...props
 }) => {
   const baseClasses =
-    "rounded-md border-0 py-1.5 pl-3 pr-10 sm:text-sm sm:leading-6";
+    "rounded-md border-0 py-[.55rem] pl-3 pr-10 sm:text-sm sm:leading-6";
 
   const variantClasses = {
     primary:
@@ -83,8 +84,12 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <div className="flex flex-col">
       {label && (
-        <label htmlFor={id} className="mb-1 font-medium text-white">
+        <label
+          htmlFor={id}
+          className="mb-1 font-medium text-neutral-900 dark:text-neutral-100"
+        >
           {label}
+          {required && <span className="ml-1 text-error">*</span>}
         </label>
       )}
       <select
@@ -92,6 +97,7 @@ export const Select: React.FC<SelectProps> = ({
         {...props}
         id={id}
         onChange={handleChange}
+        required={required}
       >
         {options.map((option, idx) => (
           <option

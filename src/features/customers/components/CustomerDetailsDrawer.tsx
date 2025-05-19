@@ -170,14 +170,6 @@ export const CustomerDetailsDrawer = ({
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Date of Birth
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatDate(customer.dateOfBirth)}
-                </dd>
-              </div>
-              <div>
                 <dt className="text-sm font-medium text-gray-500">Email</dt>
                 <dd className="mt-1 text-sm text-gray-900 flex flex-wrap items-center gap-1">
                   <span className="break-all">{customer.email}</span>

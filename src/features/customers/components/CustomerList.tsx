@@ -3,6 +3,7 @@ import { Customer } from "../types/customer.types";
 import { Button } from "@/components/Button";
 import { Badge } from "@/components/Badge";
 import { format } from "date-fns";
+import { Avatar } from "@/components/Avatar";
 
 interface CustomerListProps {
   customers: Customer[];
@@ -180,9 +181,7 @@ export const CustomerList: React.FC<CustomerListProps> = ({
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                               <span className="text-blue-800 font-medium">
-                                {`${customer.firstName.charAt(
-                                  0
-                                )}${customer.lastName.charAt(0)}`}
+                                <Avatar alt={`${customer.firstName} ${customer.lastName}`} size="sm" />
                               </span>
                             </div>
                           </div>

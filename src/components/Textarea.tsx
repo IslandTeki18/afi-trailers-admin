@@ -17,6 +17,8 @@ interface TextareaProps
     | "gray"
     | "error";
   darkMode?: boolean;
+  label?: string;
+  required?: boolean;
 }
 
 export const Textarea: React.FC<TextareaProps> = ({
@@ -29,6 +31,9 @@ export const Textarea: React.FC<TextareaProps> = ({
   name,
   className = "",
   defaultValue,
+  label,
+  required = false,
+  darkMode = false,
   ...props
 }) => {
   // Base styling that matches the reference textarea
@@ -61,18 +66,30 @@ export const Textarea: React.FC<TextareaProps> = ({
   };
 
   return (
-    <textarea
-      id={id}
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      rows={rows}
-      defaultValue={defaultValue}
-      className={`${baseClasses} ${
-        props.darkMode ? darkModeClasses[variant] : variantClasses[variant]
-      } ${className}`}
-      {...props}
-    />
+    <div className="flex flex-col">
+      {label && (
+        <label
+          htmlFor={id}
+          className="mb-1 font-medium text-neutral-900 dark:text-neutral-100"
+        >
+          {label}
+          {required && <span className="ml-1 text-error">*</span>}
+        </label>
+      )}
+      <textarea
+        id={id}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        rows={rows}
+        defaultValue={defaultValue}
+        required={required}
+        className={`${baseClasses} ${
+          darkMode ? darkModeClasses[variant] : variantClasses[variant]
+        } ${className}`}
+        {...props}
+      />
+    </div>
   );
 };

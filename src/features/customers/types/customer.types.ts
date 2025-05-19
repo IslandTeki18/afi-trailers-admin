@@ -16,7 +16,6 @@ export interface Customer {
     expirationDate: Date;
     state: string;
   };
-  dateOfBirth: Date;
   rentalHistory?: string[]; 
   paymentMethods?: string[]; 
   preferences?: {
