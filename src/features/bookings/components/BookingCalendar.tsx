@@ -186,11 +186,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
     if (eventsOnDay.length > 0) {
       const formattedEvents = eventsOnDay.map((booking) => ({
-        id: booking._id,
+        id: booking._id!,
         title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
         start: booking.startDate.toString(),
         status: booking.status,
-        bookingId: booking._id,
+        bookingId: booking._id!,
       }));
 
       setSelectedEvents(formattedEvents);
@@ -205,7 +205,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     }
   };
 
-  // Handle event click - now adds just the clicked event to the list
   const handleEventClick = (clickInfo: any) => {
     const event = {
       id: clickInfo.event.id,
@@ -215,11 +214,9 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       bookingId: clickInfo.event.id,
     };
 
-    // Replace the selection with just this event
     setSelectedEvents([event]);
     setIsDetailsOpen(true);
 
-    // Also update the lastSelectedDate for consistency
     setLastSelectedDate(new Date(clickInfo.event.start));
   };
 

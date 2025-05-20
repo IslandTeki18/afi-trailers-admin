@@ -58,7 +58,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         lastName: "",
         email: "",
         phoneNumber: "",
-        dateOfBirth: new Date(),
         accountStatus: "active",
       },
     }

@@ -22,26 +22,25 @@ export const CustomersPage = () => {
   const { addToast } = useToast();
 
   useEffect(() => {
-    
+    const loadCustomers = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchCustomers();
+        setCustomers(data.customers);
+      } catch (error) {
+        console.error("Failed to fetch customers:", error);
+        addToast({
+          message: "Failed to load customers. Please try again.",
+          variant: "error",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
     loadCustomers();
   }, []);
 
-  const loadCustomers = async () => {
-    try {
-      setIsLoading(true);
-      const data = await fetchCustomers();
-      setCustomers(data.customers);
-    } catch (error) {
-      console.error("Failed to fetch customers:", error);
-      addToast({
-        message: "Failed to load customers. Please try again.",
-        variant: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleViewDetails = (customerId: string) => {
     const customer = customers.find((c) => c._id === customerId);

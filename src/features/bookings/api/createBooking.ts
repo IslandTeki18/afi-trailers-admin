@@ -21,7 +21,7 @@ export interface CreateBookingPayload {
     quantity: number;
     cost: number;
   }>;
-  totalCost: number;
+  totalAmount: number;
   status?: "pending" | "confirmed" | "cancelled" | "completed";
 }
 
@@ -105,8 +105,8 @@ export const validateBookingData = (
     errors.serviceType = "Service type is required";
   }
 
-  if (bookingData.totalCost === undefined) {
-    errors.totalCost = "Total cost is required";
+  if (bookingData.totalAmount === undefined) {
+    errors.totalAmount = "Total cost is required";
   }
 
   // If service type is 'full', require delivery address

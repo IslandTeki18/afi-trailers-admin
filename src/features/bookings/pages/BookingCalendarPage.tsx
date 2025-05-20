@@ -4,9 +4,11 @@ import { BookingCalendar } from "../components/BookingCalendar";
 import { CreateBookingModal } from "../components/CreateBookingModal";
 import { BookingDetailsDrawer } from "../components/BookingDetailsDrawer";
 import { Booking, BookingStatus } from "../types/booking.types";
-import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { fetchTrailers } from "@/features/trailers/api/fetchTrailers";
+import { fetchCustomers } from "@/features/customers/api/fetchCustomers";
+import { fetchCustomerById } from "@/features/customers/api/fetchCustomerById";
+import { fetchTrailerById } from "@/features/trailers/api/fetchTrailerById";
 import {
   createBooking,
   CreateBookingPayload,
@@ -14,15 +16,16 @@ import {
 } from "../api/createBooking";
 import { useToast } from "@/hooks/useToast";
 import { Trailer } from "@/features/trailers/types/trailer.types";
+import { Customer } from "@/features/customers/types/customer.types";
 
 // Use the same mock data as BookingPage
-import { mockBookings } from "./BookingPage";
 
 export const BookingCalendarPage = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
@@ -45,12 +48,10 @@ export const BookingCalendarPage = () => {
             trailersData.data
           );
           setTrailers(trailersData.data);
-        }
-        else if (Array.isArray(trailersData)) {
+        } else if (Array.isArray(trailersData)) {
           console.log("Setting trailers directly from array:", trailersData);
           setTrailers(trailersData);
-        }
-        else {
+        } else {
           console.error("Invalid trailer data format", trailersData);
           setTrailers([]);
         }
@@ -62,41 +63,94 @@ export const BookingCalendarPage = () => {
     fetchTrailersData();
   }, []);
 
-  const handleCreateBooking = async (newBooking: Booking) => {
-    let startDate = new Date(newBooking.startDate || new Date());
-    startDate.setHours(12, 0, 0, 0);
-
-    let endDate = new Date(newBooking.endDate || new Date());
-    endDate.setHours(12, 0, 0, 0);
-
-    const returnDate = new Date(endDate);
-    returnDate.setDate(returnDate.getDate() + 1);
-    returnDate.setHours(8, 0, 0, 0);
-
-    const bookingWithId: CreateBookingPayload = {
-      ...newBooking,
-      startDate: startDate,
-      endDate: endDate,
-      status: newBooking.status || "pending",
-      customerId: newBooking.customer._id!,
-      serviceType: "full",
-      totalCost: newBooking.totalAmount || 0,
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        const data = await fetchCustomers();
+        // @ts-ignore
+        setCustomers(data.customers);
+      } catch (error) {
+        console.error("Failed to fetch customers:", error);
+        addToast({
+          message: "Failed to load customers. Please try again.",
+          variant: "error",
+        });
+      }
     };
 
-    const { isValid, errors } = validateBookingData(bookingWithId);
-    if (!isValid) {
+    loadCustomers();
+  }, []);
+
+  const handleCreateBooking = async (newBooking: Booking) => {
+    try {
+      let startDate = new Date(newBooking.startDate || new Date());
+      startDate.setHours(12, 0, 0, 0);
+
+      let endDate = new Date(newBooking.endDate || new Date());
+      endDate.setHours(12, 0, 0, 0);
+
+      const returnDate = new Date(endDate);
+      returnDate.setDate(returnDate.getDate() + 1);
+      returnDate.setHours(8, 0, 0, 0);
+
+      const bookingWithId: CreateBookingPayload = {
+        ...newBooking,
+        startDate: startDate,
+        endDate: endDate,
+        status: newBooking.status || "pending",
+        customerId: newBooking.customer._id!,
+        // @ts-ignore
+        trailerId: newBooking.trailerId,
+        serviceType: "full",
+        totalAmount: newBooking.totalAmount || 0,
+      };
+
+      const { isValid, errors } = validateBookingData(bookingWithId);
+      if (!isValid) {
+        addToast({
+          message: `Error creating booking: ${Object.values(errors).join(
+            ", "
+          )}`,
+          variant: "error",
+          duration: 5000,
+        });
+        return;
+      }
+
+      // Create the booking
+      const createdBooking = await createBooking(bookingWithId);
+
+      // Fetch the complete customer and trailer details
+      const [customer, trailer] = await Promise.all([
+        fetchCustomerById(createdBooking.customer._id!),
+        fetchTrailerById(createdBooking.trailerId),
+      ]);
+
+      // Create a complete booking object with all needed information
+      const completeBooking: Booking = {
+        ...createdBooking,
+        customer,
+        trailerId: trailer._id || "No Trailer ID",
+        trailerName: trailer.name || "Unknown Trailer",
+      };
+
+      // Update bookings state with the complete booking
+      setBookings([completeBooking, ...bookings]);
+      setIsCreateModalOpen(false);
+
       addToast({
-        message: `Error creating booking: ${Object.values(errors).join(", ")}`,
+        message: "Booking created successfully",
+        variant: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      addToast({
+        message: "Failed to create booking. Please try again.",
         variant: "error",
         duration: 5000,
       });
-      return;
     }
-
-    const createdBooking = await createBooking(bookingWithId);
-
-    setBookings([createdBooking, ...bookings]);
-    setIsCreateModalOpen(false);
   };
 
   const handleViewBooking = (bookingId: string) => {
@@ -163,6 +217,7 @@ export const BookingCalendarPage = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateBooking}
         trailers={trailers}
+        customers={customers}
       />
     </div>
   );

@@ -3,19 +3,18 @@ import { Button } from "@/components/Button";
 import { AutoComplete } from "@/components/AutoComplete";
 import { Tabs } from "@/components/Tabs";
 import { BookingDetailsDrawer } from "../components/BookingDetailsDrawer";
-import { CreateBookingModal } from "../components/CreateBookingModal";
 import { BookingTable } from "../components/BookingTable";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { useNavigate } from "react-router-dom";
+import { fetchBookings } from "../api/fetchBookings";
 
 // Mock data for demonstration
-export const mockBookings: Booking[] = [];
 
 export const BookingPage = () => {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] =
-    useState<Booking[]>(mockBookings);
+    useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSearchOption, setSelectedSearchOption] = useState<{
     id: string;
@@ -26,9 +25,47 @@ export const BookingPage = () => {
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  useEffect(() => {
+    const getBookings = async () => {
+      try {
+        const response = await fetchBookings();
+        console.log("Raw bookings data:", response);
+
+        // Transform the data to match the expected structure
+        const transformedBookings = response.map((booking: any) => {
+          // Extract customer data from customerId object
+          const customer = booking.customerId || {};
+
+          return {
+            ...booking,
+            customer: {
+              _id: customer._id || "",
+              firstName: customer.firstName || "",
+              lastName: customer.lastName || "",
+              email: customer.email || "",
+              phoneNumber: customer.phoneNumber || "",
+            },
+            // If trailerName doesn't exist, use a placeholder
+            trailerName: booking.trailerName || `Trailer #${booking.trailerId}`,
+            // Keep the original customerId as a reference
+            customerId: customer._id || booking.customerId,
+          };
+        });
+
+        setBookings(transformedBookings);
+      } catch (error) {
+        console.log("Failed to fetch bookings:", error);
+      }
+    };
+    getBookings();
+  }, []);
+
+  console.log(bookings)
+
   // Create search options for AutoComplete component
   const searchOptions = useMemo(() => {
     const options: any[] = [];
+    if (!bookings) return [];
 
     // Add customer name options
     bookings.forEach((booking) => {
@@ -91,7 +128,7 @@ export const BookingPage = () => {
           break;
         case "booking":
           result = result.filter(
-            (booking) => booking._id.toLowerCase() === searchValue
+            (booking) => booking._id!.toLowerCase() === searchValue
           );
           break;
         default:
@@ -104,7 +141,7 @@ export const BookingPage = () => {
                 booking.trailerName
                   .toLowerCase()
                   .includes(searchTerm.toLowerCase()) ||
-                booking._id.toLowerCase().includes(searchTerm.toLowerCase())
+                booking._id!.toLowerCase().includes(searchTerm.toLowerCase())
             );
           }
       }
@@ -118,7 +155,7 @@ export const BookingPage = () => {
           booking.trailerName
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          booking._id.toLowerCase().includes(searchTerm.toLowerCase())
+          booking._id!.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 

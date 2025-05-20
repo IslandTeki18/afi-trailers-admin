@@ -11,14 +11,6 @@ interface FetchBookingsOptions {
   endDate?: string | Date;
 }
 
-interface BookingsPaginatedResponse {
-  bookings: Booking[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
 /**
  * Fetches a list of bookings with optional filtering and pagination
  *
@@ -27,7 +19,7 @@ interface BookingsPaginatedResponse {
  */
 export const fetchBookings = async (
   options: FetchBookingsOptions = {}
-): Promise<BookingsPaginatedResponse> => {
+): Promise<any> => {
   try {
     const formattedOptions = {
       ...options,
@@ -45,8 +37,14 @@ export const fetchBookings = async (
       .filter(([_, value]) => value !== undefined)
       .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
 
+    const token = localStorage.getItem("atr_auth_token");
+    const headers = {
+      Authorization: token ? `Bearer ${token}` : "",
+    };
+
     const response = await axiosInstance.get("/bookings", {
       params: queryParams,
+      headers
     });
 
     return response.data;
@@ -55,5 +53,3 @@ export const fetchBookings = async (
     throw error;
   }
 };
-
-export default fetchBookings;

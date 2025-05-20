@@ -12,8 +12,8 @@ export const BookingTable: React.FC<BookingTableProps> = ({
   bookings,
   onRowClick,
 }) => {
-  const formatDate = (date: Date) => {
-    return format(date, "MMM dd, yyyy");
+  const formatDate = (date: Date | string) => {
+    return format(new Date(date), "MMM dd, yyyy");
   };
 
   const getStatusBadgeClass = (status: BookingStatus) => {
@@ -34,14 +34,15 @@ export const BookingTable: React.FC<BookingTableProps> = ({
   // Create data for the table that uses string values
   const tableData = bookings.map((booking) => {
     const daysCount = Math.ceil(
-      (booking.endDate.getTime() - booking.startDate.getTime()) /
+      (new Date(booking.endDate).getTime() -
+        new Date(booking.startDate).getTime()) /
         (1000 * 3600 * 24)
     );
 
     return {
       id: booking._id,
-      customerName: booking.customerName,
-      customerEmail: booking.customerEmail,
+      customerName: `${booking.customer.firstName} ${booking.customer.lastName}`,
+      customerEmail: booking.customer.email,
       trailerName: booking.trailerName,
       startDate: formatDate(booking.startDate),
       endDate: formatDate(booking.endDate),
@@ -49,9 +50,9 @@ export const BookingTable: React.FC<BookingTableProps> = ({
       status: booking.status,
       statusDisplay:
         booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
-      totalAmount: `$${booking.totalAmount.toFixed(2)}`,
-      depositAmount: `$${booking.depositAmount.toFixed(2)}`,
-      _original: booking, // Store the original booking for reference
+      totalAmount: `$${booking.totalAmount}`,
+      depositAmount: `$${booking.depositAmount}`,
+      _original: booking,
     };
   });
 

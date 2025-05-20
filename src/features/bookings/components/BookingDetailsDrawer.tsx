@@ -24,8 +24,8 @@ export const BookingDetailsDrawer = ({
     message?: string;
   }>({ visible: false });
 
-  const formatDate = (date: Date) => {
-    return format(date, "MMM dd, yyyy");
+  const formatDate = (date: Date | string) => {
+    return format(new Date(date), "MMM dd, yyyy");
   };
 
   const getStatusBadgeClass = (status: BookingStatus) => {
@@ -43,14 +43,17 @@ export const BookingDetailsDrawer = ({
     }
   };
 
-  const calculateBookingDuration = (start: Date, end: Date) => {
-    // When calculating duration, include both start and end day
-    // For a Monday to Friday booking, that's 5 days, not 4
+  const calculateBookingDuration = (
+    start: Date | string,
+    end: Date | string
+  ) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
     const diffInDays = Math.floor(
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    // Add 1 to include both start and end days in the duration
     return diffInDays;
   };
 
@@ -81,7 +84,7 @@ export const BookingDetailsDrawer = ({
 
   const confirmStatusChange = () => {
     if (confirmAction.status) {
-      onUpdateStatus(booking._id, confirmAction.status);
+      onUpdateStatus(booking._id!, confirmAction.status);
     }
     setConfirmAction({ visible: false });
   };
@@ -246,8 +249,8 @@ export const BookingDetailsDrawer = ({
                 <dt className="text-sm font-medium text-gray-500">Duration</dt>
                 <dd className="mt-1 text-sm text-gray-900">
                   {calculateBookingDuration(
-                    booking.startDate,
-                    booking.endDate
+                    new Date(booking.startDate),
+                    new Date(booking.endDate)
                   ) + 1}{" "}
                   day(s)
                 </dd>
@@ -265,7 +268,9 @@ export const BookingDetailsDrawer = ({
                   Return Date
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {formatDate(new Date(booking.endDate.getTime() + 86400000))}{" "}
+                  {formatDate(
+                    new Date(new Date(booking.endDate).getTime() + 86400000)
+                  )}{" "}
                   (8:00 AM)
                 </dd>
               </div>
@@ -285,13 +290,16 @@ export const BookingDetailsDrawer = ({
                   Total Amount
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  ${booking.totalAmount.toFixed(2)}
+                  ${booking.totalAmount.toFixed(2) || 0}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Deposit</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  ${booking.depositAmount.toFixed(2)}
+                  $
+                  {(booking.depositAmount &&
+                    booking.depositAmount.toFixed(2)) ||
+                    0}
                 </dd>
               </div>
               <div>
@@ -299,7 +307,9 @@ export const BookingDetailsDrawer = ({
                   Balance Due
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  ${(booking.totalAmount - booking.depositAmount).toFixed(2)}
+                  $
+                  {(booking.totalAmount - (booking.depositAmount || 0)).toFixed(2) ||
+                    0}
                 </dd>
               </div>
               <div>
@@ -311,7 +321,7 @@ export const BookingDetailsDrawer = ({
                   {(
                     booking.totalAmount /
                     calculateBookingDuration(booking.startDate, booking.endDate)
-                  ).toFixed(2)}
+                  ).toFixed(2) || 0}
                 </dd>
               </div>
             </dl>

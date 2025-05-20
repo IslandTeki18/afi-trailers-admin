@@ -5,53 +5,8 @@ import { Booking } from "../types/booking.types";
 import BookingForm from "./BookingForm";
 import { fetchTrailers } from "@/features/trailers/api/fetchTrailers";
 import { Trailer } from "@/features/trailers/types/trailer.types";
+import { Customer } from "@/features/customers/types/customer.types";
 
-// Mock data for customers - in a real application, you would fetch these from your API
-const mockCustomers = [
-  {
-    _id: "c001",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phoneNumber: "(555) 123-4567",
-    dateOfBirth: new Date("1990-01-01"),
-    accountStatus: "active" as const,
-  },
-  {
-    _id: "c002",
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    phoneNumber: "(555) 987-6543",
-    dateOfBirth: new Date("1992-03-15"),
-    accountStatus: "active" as const,
-  },
-  {
-    _id: "c003",
-    firstName: "Robert",
-    lastName: "Johnson",
-    email: "robert.j@example.com",
-    phoneNumber: "(555) 456-7890",
-    dateOfBirth: new Date("1985-07-22"),
-    accountStatus: "active" as const,
-  },
-  {
-    _id: "c004",
-    firstName: "Emily",
-    lastName: "Brown",
-    email: "emily.b@example.com",
-    phoneNumber: "(555) 567-8901",
-    dateOfBirth: new Date("1988-11-30"),
-    accountStatus: "active" as const,
-    address: {
-      street: "123 Main St",
-      city: "Anytown",
-      state: "CA",
-      zipCode: "12345",
-      country: "USA",
-    },
-  },
-];
 
 interface CreateBookingModalProps {
   isOpen: boolean;
@@ -59,6 +14,7 @@ interface CreateBookingModalProps {
   onSubmit: (booking: Booking) => void;
   isLoading?: boolean;
   trailers?: Trailer[];
+  customers?: Customer[];
 }
 
 export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
@@ -67,6 +23,7 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
   onSubmit,
   isLoading = false,
   trailers: initialTrailers = [],
+  customers
 }) => {
   const [trailers, setTrailers] = useState<Trailer[]>(initialTrailers);
   const [trailersLoading, setTrailersLoading] = useState(false);
@@ -81,7 +38,7 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-md rounded-lg bg-white p-6 sm:p-8 shadow-xl">
+        <DialogPanel className="w-full max-w-xl rounded-lg bg-white p-6 sm:p-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <DialogTitle className="text-lg font-medium text-gray-900">
               Schedule Trailer Rental
@@ -113,7 +70,7 @@ export const CreateBookingModal: React.FC<CreateBookingModalProps> = ({
             </div>
           ) : (
             <BookingForm
-              customers={mockCustomers}
+              customers={customers || []}
               trailers={trailers}
               onSubmit={onSubmit}
               onCancel={onClose}

@@ -1,9 +1,24 @@
+import { useEffect, useState } from "react";
 import { BookingCalendar } from "@/features/bookings/components/BookingCalendar";
-import { mockBookings } from "@/features/bookings/pages/BookingPage";
 import { useNavigate } from "react-router-dom";
+import { fetchBookings } from "@/features/bookings/api/fetchBookings";
+import { Trailer } from "@/features/trailers/types/trailer.types";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
+  const [bookings, setBookings] = useState<Trailer[]>([]);
+
+  useEffect(() => {
+    const getBookings = async () => {
+      try {
+        const response = await fetchBookings();
+        setBookings(response.data);
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error);
+      }
+    }
+    getBookings();
+  }, [])
 
   const handleViewBooking = (bookingId: string) => {
     navigate(`/bookings/${bookingId}`);
@@ -17,7 +32,7 @@ export const DashboardPage = () => {
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-medium mb-4">Upcoming Bookings</h2>
           <BookingCalendar
-            bookings={mockBookings}
+            bookings={bookings}
             onViewBooking={handleViewBooking}
             variant="primary"
             onAddBooking={() => navigate("/bookings/new")}
