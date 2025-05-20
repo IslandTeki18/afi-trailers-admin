@@ -22,12 +22,13 @@ export const BookingPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     const getBookings = async () => {
       try {
         const response = await fetchBookings();
+
+        console.log("Bookings response:", response);
 
         const transformedBookings = response.map((booking: any) => {
           const customer = booking.customerId || {};

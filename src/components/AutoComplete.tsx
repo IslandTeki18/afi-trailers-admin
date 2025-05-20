@@ -170,9 +170,9 @@ export const AutoComplete: React.FC<ComboboxProps> = ({
             id="options"
             role="listbox"
           >
-            {filteredOptions.map((option) => (
+            {filteredOptions.map((option, idx) => (
               <li
-                key={option.id}
+                key={`option-${idx}`}
                 className={`relative cursor-default select-none py-2 pl-3 pr-9 ${getVariantClasses(
                   "option"
                 )} ${
