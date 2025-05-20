@@ -9,6 +9,7 @@ import { fetchTrailers } from "@/features/trailers/api/fetchTrailers";
 import { fetchCustomers } from "@/features/customers/api/fetchCustomers";
 import { fetchCustomerById } from "@/features/customers/api/fetchCustomerById";
 import { fetchTrailerById } from "@/features/trailers/api/fetchTrailerById";
+import { fetchBookings } from "../api/fetchBookings";
 import {
   createBooking,
   CreateBookingPayload,
@@ -34,34 +35,70 @@ export const BookingCalendarPage = () => {
   useEffect(() => {
     const fetchTrailersData = async () => {
       try {
-        console.log("Fetching trailers...");
         const trailersData = await fetchTrailers();
-        console.log("Raw trailers data:", trailersData);
 
         if (
           trailersData &&
           typeof trailersData === "object" &&
           "data" in trailersData
         ) {
-          console.log(
-            "Setting trailers from data property:",
-            trailersData.data
-          );
           setTrailers(trailersData.data);
         } else if (Array.isArray(trailersData)) {
-          console.log("Setting trailers directly from array:", trailersData);
           setTrailers(trailersData);
         } else {
-          console.error("Invalid trailer data format", trailersData);
           setTrailers([]);
         }
       } catch (error) {
-        console.error("Error fetching trailers:", error);
+        console.log("Error fetching trailers:", error);
       }
     };
 
     fetchTrailersData();
   }, []);
+
+  useEffect(() => {
+    const getBookings = async () => {
+      try {
+        const response = await fetchBookings();
+
+        const transformedBookings = response.map((booking: any) => {
+          const customer = booking.customerId || {};
+
+          const startDate = new Date(booking.startDate);
+
+          const endDate = new Date(booking.endDate);
+          endDate.setHours(23, 59, 59);
+
+          return {
+            ...booking,
+            customer: {
+              _id: customer._id || "",
+              firstName: customer.firstName || "",
+              lastName: customer.lastName || "",
+              email: customer.email || "",
+              phoneNumber: customer.phoneNumber || "",
+            },
+            trailerName: booking.trailerName || `Trailer #${booking.trailerId}`,
+            customerId: customer._id || booking.customerId,
+            startDate: startDate,
+            endDate: endDate,
+            totalAmount: booking.totalAmount || booking.totalCost || 0,
+            depositAmount: booking.depositAmount || 0,
+          };
+        });
+
+        setBookings(transformedBookings);
+      } catch (error) {
+        console.log("Failed to fetch bookings:", error);
+        addToast({
+          message: "Failed to load bookings. Please try again.",
+          variant: "error",
+        });
+      }
+    };
+
+    getBookings();
+  }, [addToast]);
 
   useEffect(() => {
     const loadCustomers = async () => {
@@ -70,7 +107,7 @@ export const BookingCalendarPage = () => {
         // @ts-ignore
         setCustomers(data.customers);
       } catch (error) {
-        console.error("Failed to fetch customers:", error);
+        console.log("Failed to fetch customers:", error);
         addToast({
           message: "Failed to load customers. Please try again.",
           variant: "error",
@@ -117,16 +154,13 @@ export const BookingCalendarPage = () => {
         return;
       }
 
-      // Create the booking
       const createdBooking = await createBooking(bookingWithId);
 
-      // Fetch the complete customer and trailer details
       const [customer, trailer] = await Promise.all([
         fetchCustomerById(createdBooking.customer._id!),
         fetchTrailerById(createdBooking.trailerId),
       ]);
 
-      // Create a complete booking object with all needed information
       const completeBooking: Booking = {
         ...createdBooking,
         customer,
@@ -134,7 +168,6 @@ export const BookingCalendarPage = () => {
         trailerName: trailer.name || "Unknown Trailer",
       };
 
-      // Update bookings state with the complete booking
       setBookings([completeBooking, ...bookings]);
       setIsCreateModalOpen(false);
 
@@ -144,7 +177,7 @@ export const BookingCalendarPage = () => {
         duration: 3000,
       });
     } catch (error) {
-      console.error("Error creating booking:", error);
+      console.log("Error creating booking:", error);
       addToast({
         message: "Failed to create booking. Please try again.",
         variant: "error",

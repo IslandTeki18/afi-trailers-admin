@@ -13,8 +13,7 @@ import { fetchBookings } from "../api/fetchBookings";
 export const BookingPage = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] =
-    useState<any[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSearchOption, setSelectedSearchOption] = useState<{
     id: string;
@@ -29,11 +28,8 @@ export const BookingPage = () => {
     const getBookings = async () => {
       try {
         const response = await fetchBookings();
-        console.log("Raw bookings data:", response);
 
-        // Transform the data to match the expected structure
         const transformedBookings = response.map((booking: any) => {
-          // Extract customer data from customerId object
           const customer = booking.customerId || {};
 
           return {
@@ -45,9 +41,7 @@ export const BookingPage = () => {
               email: customer.email || "",
               phoneNumber: customer.phoneNumber || "",
             },
-            // If trailerName doesn't exist, use a placeholder
             trailerName: booking.trailerName || `Trailer #${booking.trailerId}`,
-            // Keep the original customerId as a reference
             customerId: customer._id || booking.customerId,
           };
         });
@@ -60,14 +54,11 @@ export const BookingPage = () => {
     getBookings();
   }, []);
 
-  console.log(bookings)
-
   // Create search options for AutoComplete component
   const searchOptions = useMemo(() => {
     const options: any[] = [];
     if (!bookings) return [];
 
-    // Add customer name options
     bookings.forEach((booking) => {
       options.push({
         id: `customer-${booking._id}`,
@@ -75,7 +66,6 @@ export const BookingPage = () => {
       });
     });
 
-    // Add trailer name options
     bookings.forEach((booking) => {
       const exists = options.some(
         (option) => option.name === booking.trailerName
@@ -88,7 +78,6 @@ export const BookingPage = () => {
       }
     });
 
-    // Add booking ID options
     bookings.forEach((booking) => {
       options.push({
         id: `booking-${booking._id}`,
@@ -96,7 +85,6 @@ export const BookingPage = () => {
       });
     });
 
-    // Remove duplicates
     return options.filter(
       (option, index, self) =>
         index === self.findIndex((o) => o.name === option.name)
@@ -107,19 +95,16 @@ export const BookingPage = () => {
   const getBookingsForStatus = (status: string) => {
     let result = bookings;
 
-    // If a search option is selected, filter by the exact term
     if (selectedSearchOption && selectedSearchOption.name) {
       const searchValue = selectedSearchOption.name.toLowerCase();
       const optionType = selectedSearchOption.id.split("-")[0];
 
       switch (optionType) {
         case "customer":
-          result = result.filter(
-            (booking) => {
-              const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`;
-              return customerName.toLowerCase() === searchValue;
-            }
-          );
+          result = result.filter((booking) => {
+            const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`;
+            return customerName.toLowerCase() === searchValue;
+          });
           break;
         case "trailer":
           result = result.filter(
@@ -146,7 +131,6 @@ export const BookingPage = () => {
           }
       }
     } else if (searchTerm) {
-      // Standard search behavior if no option is selected
       result = result.filter(
         (booking) =>
           booking.customer.firstName
@@ -175,24 +159,10 @@ export const BookingPage = () => {
     setSearchTerm(option.name);
   };
 
-  const handleCreateBooking = (newBooking: Booking) => {
-    // In a real application, this would make an API call
-    const bookingWithId = {
-      ...newBooking,
-      _id: `b${bookings.length + 1}`.padStart(4, "0"),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    setBookings([bookingWithId, ...bookings]);
-    setIsCreateModalOpen(false);
-  };
-
   const handleUpdateBookingStatus = (
     bookingId: string,
     newStatus: BookingStatus
   ) => {
-    // In a real application, this would make an API call
     const updatedBookings = bookings.map((booking) =>
       booking._id === bookingId
         ? { ...booking, status: newStatus, updatedAt: new Date() }
@@ -209,7 +179,6 @@ export const BookingPage = () => {
     setIsBookingDetailsOpen(true);
   };
 
-  // Create tab items for the Tabs component
   const tabItems = [
     {
       id: "all",
@@ -283,22 +252,20 @@ export const BookingPage = () => {
 
       <div className="mt-8 bg-white shadow rounded-lg">
         <div className="p-6 border-b border-gray-200">
+          <AutoComplete
+            label="Search bookings"
+            options={searchOptions}
+            variant="base"
+            onSelect={handleSearchOptionSelect}
+          />
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-            <div className="w-full">
+            <div className="w-full flex justify-between items-center">
               <Tabs
                 items={tabItems}
                 variant="base"
                 defaultTab={activeTab}
                 onTabChange={(tabId) => setActiveTab(tabId)}
                 className="mb-4"
-              />
-            </div>
-            <div className="flex justify-end mt-4 sm:mt-0 w-full sm:w-64">
-              <AutoComplete
-                label="Search bookings"
-                options={searchOptions}
-                variant="base"
-                onSelect={handleSearchOptionSelect}
               />
             </div>
           </div>

@@ -60,21 +60,23 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   // Convert bookings to FullCalendar events
   const calendarEvents = bookings.map((booking) => {
+    // Create proper date objects from booking dates
     const startDate = new Date(booking.startDate);
-
-    startDate.setHours(12, 0, 0, 0);
+    // Set to beginning of day to ensure full day coverage
+    startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date(booking.endDate);
-    endDate.setHours(12, 0, 0, 0);
-
+    // FullCalendar uses exclusive end dates, so add a day to include the end date
+    // in the displayed range
     const displayEndDate = new Date(endDate);
     displayEndDate.setDate(displayEndDate.getDate() + 1);
+    displayEndDate.setHours(0, 0, 0, 0);
 
     return {
       id: booking._id,
       title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
       start: startDate,
-      end: displayEndDate,
+      end: displayEndDate, // Use displayEndDate to make the range inclusive
       allDay: true,
       backgroundColor: statusColors[booking.status],
       borderColor: statusColors[booking.status],
@@ -88,7 +90,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
         lastDayOfUse: format(endDate, "MMM d, yyyy"),
         returnDate: format(displayEndDate, "MMM d, yyyy"),
         description: `Pickup: ${format(startDate, "MMM d")} | Return: ${format(
-          displayEndDate,
+          endDate,
           "MMM d"
         )} | Status: ${booking.status}`,
       },
@@ -168,19 +170,15 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     // Find all bookings for the selected day
     const eventsOnDay = bookings.filter((booking) => {
       const startDate = new Date(booking.startDate);
-      startDate.setHours(12, 0, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
 
       const endDate = new Date(booking.endDate);
-      endDate.setHours(12, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
 
-      // Add one day to endDate for proper interval comparison
-      const displayEndDate = new Date(endDate);
-      displayEndDate.setDate(displayEndDate.getDate() + 1);
-
-      // Check if selected day falls within this booking's range
+      
       return isWithinInterval(selectedDay, {
         start: startDate,
-        end: displayEndDate,
+        end: endDate,
       });
     });
 
