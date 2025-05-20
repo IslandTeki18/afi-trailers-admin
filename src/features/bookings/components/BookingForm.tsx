@@ -34,6 +34,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   isLoading = false,
   variant = "base",
 }) => {
+  // Add state for single day rental
+  const [isSingleDayRental, setIsSingleDayRental] = useState(false);
+
   const [bookingData, setBookingData] = useState<Booking>(
     initialValues || {
       status: "pending" as BookingStatus,
@@ -75,6 +78,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCustomers, setFilteredCustomers] =
     useState<Customer[]>(customers);
+
+  // Check for single day rental on load
+  useEffect(() => {
+    if (initialValues && initialValues.startDate && initialValues.endDate) {
+      const start = new Date(initialValues.startDate);
+      const end = new Date(initialValues.endDate);
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      if (start.getTime() === end.getTime()) {
+        setIsSingleDayRental(true);
+      }
+    }
+  }, [initialValues]);
 
   const customerOptions: SelectOption[] = [
     { value: "", label: "Select a customer" },
@@ -277,27 +295,63 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
-  // Handle date change and auto-update end date if necessary
+  // Handle date change and set end date to match start date for single day rentals
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     if (!value) return;
     const date = new Date(value + "T12:00:00");
-    setBookingData((prev) => ({
-      ...prev,
-      [field]: date,
-    }));
 
-    if (
-      field === "startDate" &&
-      bookingData.endDate &&
-      date > bookingData.endDate
-    ) {
-      const newEndDate = new Date(date);
-      newEndDate.setDate(newEndDate.getDate() + 1);
-      newEndDate.setHours(12, 0, 0, 0);
+    if (field === "startDate") {
+      if (isSingleDayRental) {
+        setBookingData((prev) => ({
+          ...prev,
+          startDate: date,
+          endDate: date,
+        }));
+      } else {
+        setBookingData((prev) => ({
+          ...prev,
+          startDate: date,
+        }));
 
+        if (bookingData.endDate && date > bookingData.endDate) {
+          const newEndDate = new Date(date);
+          newEndDate.setDate(newEndDate.getDate() + 1);
+          newEndDate.setHours(12, 0, 0, 0);
+
+          setBookingData((prev) => ({
+            ...prev,
+            endDate: newEndDate,
+          }));
+        }
+      }
+    } else {
+      if (!isSingleDayRental) {
+        setBookingData((prev) => ({
+          ...prev,
+          [field]: date,
+        }));
+      }
+    }
+  };
+
+  // Handle toggle of single day rental checkbox
+  const handleSingleDayRentalToggle = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const isChecked = e.target.checked;
+    setIsSingleDayRental(isChecked);
+
+    if (isChecked) {
+      // When checked, set end date to match start date
       setBookingData((prev) => ({
         ...prev,
-        endDate: newEndDate,
+        endDate: prev.startDate,
+      }));
+    } else {
+      // When unchecked, set end date to start date + 1 day
+      setBookingData((prev) => ({
+        ...prev,
+        endDate: addDays(new Date(prev.startDate), 1),
       }));
     }
   };
@@ -443,58 +497,109 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </p>
         </div>
 
-        {/* Dates */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="startDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Pick-up Date
-            </label>
-            <Input
-              type="date"
-              name="startDate"
-              id="startDate"
-              variant={errors.startDate ? "error" : variant}
-              className="mt-1"
-              value={formatDateForInput(bookingData.startDate)}
-              onChange={(e) => handleDateChange("startDate", e.target.value)}
-              required
+        {/* Dates section with single day rental option */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">
+            Rental Period
+          </h3>
+
+          {/* Single Day Rental Checkbox */}
+          <div className="flex items-center mb-4">
+            <input
+              id="singleDayRental"
+              name="singleDayRental"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              checked={isSingleDayRental}
+              onChange={handleSingleDayRentalToggle}
             />
-            {errors.startDate && (
-              <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
-            )}
+            <label
+              htmlFor="singleDayRental"
+              className="ml-2 block text-sm text-gray-700"
+            >
+              Single day rental (same day pickup and return)
+            </label>
           </div>
-          <div>
-            <label
-              htmlFor="endDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Last Day of Use
-            </label>
-            <Input
-              type="date"
-              name="endDate"
-              id="endDate"
-              variant={errors.endDate ? "error" : variant}
-              className="mt-1"
-              value={formatDateForInput(bookingData.endDate)}
-              onChange={(e) => handleDateChange("endDate", e.target.value)}
-              required
-            />
-            {errors.endDate && (
-              <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label
+                htmlFor="startDate"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Pick-up Date
+              </label>
+              <Input
+                type="date"
+                name="startDate"
+                id="startDate"
+                variant={errors.startDate ? "error" : variant}
+                className="mt-1"
+                value={formatDateForInput(bookingData.startDate)}
+                onChange={(e) => handleDateChange("startDate", e.target.value)}
+                required
+              />
+              {errors.startDate && (
+                <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
+              )}
+            </div>
+
+            {/* Hide end date input if single day rental */}
+            {!isSingleDayRental && (
+              <div>
+                <label
+                  htmlFor="endDate"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Last Day of Use
+                </label>
+                <Input
+                  type="date"
+                  name="endDate"
+                  id="endDate"
+                  variant={errors.endDate ? "error" : variant}
+                  className="mt-1"
+                  value={formatDateForInput(bookingData.endDate)}
+                  onChange={(e) => handleDateChange("endDate", e.target.value)}
+                  required
+                />
+                {errors.endDate && (
+                  <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Return trailer by 8:00 AM on{" "}
+                  {bookingData.endDate
+                    ? format(
+                        addDays(new Date(bookingData.endDate), 1),
+                        "MMM d, yyyy"
+                      )
+                    : "[select date]"}
+                </p>
+              </div>
             )}
-            <p className="mt-1 text-xs text-gray-500">
-              Return trailer by 8:00 AM on{" "}
-              {bookingData.endDate
-                ? format(
-                    addDays(new Date(bookingData.endDate), 1),
-                    "MMM d, yyyy"
-                  )
-                : "[select date]"}
-            </p>
+
+            {/* Show single day return info if single day rental */}
+            {isSingleDayRental && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Return Date (Same Day)
+                </label>
+                <div className="mt-1 text-sm text-gray-500 border border-gray-200 rounded-md p-2 bg-gray-50">
+                  <p>
+                    <strong>
+                      Return by 8:00 PM on{" "}
+                      {bookingData.startDate
+                        ? format(new Date(bookingData.startDate), "MMM d, yyyy")
+                        : "[select date]"}
+                    </strong>
+                  </p>
+                  <p className="mt-1 text-xs">
+                    For single day rentals, the trailer must be returned by 8:00
+                    PM on the same day.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
