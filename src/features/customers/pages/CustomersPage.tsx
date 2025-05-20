@@ -41,7 +41,6 @@ export const CustomersPage = () => {
     loadCustomers();
   }, []);
 
-
   const handleViewDetails = (customerId: string) => {
     const customer = customers.find((c) => c._id === customerId);
     if (customer) {
@@ -89,9 +88,6 @@ export const CustomersPage = () => {
       setIsLoading(true);
 
       if (customerToEdit?._id) {
-        // Update existing customer logic would go here
-        // For now, just log it
-        console.log("Updating customer:", customerData);
 
         // You would add updateCustomer API call here
         // const updatedCustomer = await updateCustomer(customerToEdit._id, customerData);
@@ -176,6 +172,8 @@ export const CustomersPage = () => {
             const customer = customers.find((c) => c._id === customerId);
             if (customer) {
               handleEditCustomer(customer);
+            } else {
+              console.error("Customer not found:", customerId);
             }
           }}
           onDeleteCustomer={handleDeleteCustomer}

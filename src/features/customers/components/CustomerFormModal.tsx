@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Modal } from "@/components/Modal";
 import { Input } from "@/components/Input";
 import { Select } from "@/components/Select";
@@ -41,6 +41,15 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
     initialData || defaultCustomer
   );
   const [paymentMethodItem, setPaymentMethodItem] = useState<string>("");
+
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log("Setting form data from initialData:", initialData);
+      setFormData(initialData);
+    } else {
+      setFormData(defaultCustomer);
+    }
+  }, [initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
