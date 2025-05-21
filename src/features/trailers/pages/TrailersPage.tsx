@@ -50,7 +50,7 @@ export const TrailersPage = () => {
         </div>
         <div>
           <Button
-            variant="primary"
+            variant="base"
             onClick={() => setIsAddModalOpen(true)}
             className="flex items-center"
           >

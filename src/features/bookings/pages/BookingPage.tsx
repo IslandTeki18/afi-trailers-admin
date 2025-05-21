@@ -28,10 +28,8 @@ export const BookingPage = () => {
       try {
         const response = await fetchBookings();
 
-        console.log("Bookings response:", response);
-
-        const transformedBookings = response.map((booking: any) => {
-          const customer = booking.customerId || {};
+        const transformedBookings = response.bookings.map((booking: any) => {
+          const customer = booking.customer || {};
 
           return {
             ...booking,
