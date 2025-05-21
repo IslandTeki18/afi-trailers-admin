@@ -3,6 +3,9 @@ import { format } from "date-fns";
 import { Drawer } from "../../../components/Drawer";
 import { Button } from "../../../components/Button";
 import { Booking, BookingStatus } from "../types/booking.types";
+import { Dropdown, DropdownItem } from "../../../components/Dropdown";
+import { updateBookingStatus } from "../api/updateBookingStatus";
+import { useToast } from "../../../hooks/useToast";
 
 interface BookingDetailsDrawerProps {
   isOpen: boolean;
@@ -17,7 +20,8 @@ export const BookingDetailsDrawer = ({
   booking,
   onUpdateStatus,
 }: BookingDetailsDrawerProps) => {
-  const [showStatusOptions, setShowStatusOptions] = useState(false);
+  const { addToast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
     visible: boolean;
     status?: BookingStatus;
@@ -79,14 +83,85 @@ export const BookingDetailsDrawer = ({
       status: newStatus,
       message,
     });
-    setShowStatusOptions(false);
   };
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (confirmAction.status) {
-      onUpdateStatus(booking._id!, confirmAction.status);
+      try {
+        // Show loading state
+        setIsUpdating(true);
+        addToast({
+          message: `Updating booking status to ${confirmAction.status}...`,
+          variant: "info",
+          duration: 10000,
+        });
+
+        const updatedBooking = await updateBookingStatus(
+          booking._id!,
+          confirmAction.status
+        );
+
+        onUpdateStatus(booking._id!, confirmAction.status);
+
+        addToast({
+          message: "Booking status updated successfully",
+          variant: "success",
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error("Failed to update booking status", error);
+        addToast({
+          message: "Failed to update booking status",
+          variant: "error",
+          duration: 5000,
+        });
+      } finally {
+        setIsUpdating(false);
+        setConfirmAction({ visible: false });
+      }
+    } else {
+      setConfirmAction({ visible: false });
     }
-    setConfirmAction({ visible: false });
+  };
+
+  // Create dropdown items based on current status
+  const getStatusDropdownItems = (): DropdownItem[] => {
+    const items: DropdownItem[] = [];
+
+    // Add status options that are different from the current status
+    if (booking.status !== "pending") {
+      items.push({
+        label: "Set as Pending",
+        onClick: () => handleStatusChange("pending"),
+        type: "button",
+      });
+    }
+
+    if (booking.status !== "confirmed") {
+      items.push({
+        label: "Confirm Booking",
+        onClick: () => handleStatusChange("confirmed"),
+        type: "button",
+      });
+    }
+
+    if (booking.status !== "completed") {
+      items.push({
+        label: "Mark as Completed",
+        onClick: () => handleStatusChange("completed"),
+        type: "button",
+      });
+    }
+
+    if (booking.status !== "cancelled") {
+      items.push({
+        label: "Cancel Booking",
+        onClick: () => handleStatusChange("cancelled"),
+        type: "button",
+      });
+    }
+
+    return items;
   };
 
   return (
@@ -110,54 +185,11 @@ export const BookingDetailsDrawer = ({
               {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </span>
           </div>
-          <div className="relative">
-            <Button
-              variant="base"
-              size="small"
-              onClick={() => setShowStatusOptions(!showStatusOptions)}
-            >
-              Update Status
-            </Button>
-
-            {showStatusOptions && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                <div className="py-1">
-                  {booking.status !== "pending" && (
-                    <button
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => handleStatusChange("pending")}
-                    >
-                      Set as Pending
-                    </button>
-                  )}
-                  {booking.status !== "confirmed" && (
-                    <button
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => handleStatusChange("confirmed")}
-                    >
-                      Confirm Booking
-                    </button>
-                  )}
-                  {booking.status !== "completed" && (
-                    <button
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => handleStatusChange("completed")}
-                    >
-                      Mark as Completed
-                    </button>
-                  )}
-                  {booking.status !== "cancelled" && (
-                    <button
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => handleStatusChange("cancelled")}
-                    >
-                      Cancel Booking
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <Dropdown
+            label="Update Status"
+            items={getStatusDropdownItems()}
+            variant="base"
+          />
         </div>
 
         {/* Customer Information */}
@@ -335,13 +367,6 @@ export const BookingDetailsDrawer = ({
           <Button variant="gray" size="medium" onClick={onClose}>
             Close
           </Button>
-          <Button
-            variant="base"
-            size="medium"
-            onClick={() => setShowStatusOptions(true)}
-          >
-            Update Status
-          </Button>
         </div>
       </div>
 
@@ -360,6 +385,7 @@ export const BookingDetailsDrawer = ({
                 variant="gray"
                 size="medium"
                 onClick={() => setConfirmAction({ visible: false })}
+                disabled={isUpdating}
               >
                 Cancel
               </Button>
@@ -367,8 +393,9 @@ export const BookingDetailsDrawer = ({
                 variant="base"
                 size="medium"
                 onClick={confirmStatusChange}
+                disabled={isUpdating}
               >
-                Confirm
+                {isUpdating ? "Updating..." : "Confirm"}
               </Button>
             </div>
           </div>
