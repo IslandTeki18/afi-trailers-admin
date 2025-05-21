@@ -37,17 +37,27 @@ export const BookingCalendarPage = () => {
       try {
         const trailersData = await fetchTrailers();
 
+        let fetchedTrailers = [];
+
         if (
           trailersData &&
           typeof trailersData === "object" &&
           "data" in trailersData
         ) {
-          setTrailers(trailersData.data);
+          fetchedTrailers = trailersData.data;
         } else if (Array.isArray(trailersData)) {
-          setTrailers(trailersData);
-        } else {
-          setTrailers([]);
+          fetchedTrailers = trailersData;
         }
+
+        // Filter out trailers that aren't available
+        const availableTrailers = fetchedTrailers.filter(
+          (trailer: any) =>
+            trailer.availability &&
+            trailer.availability.isAvailable &&
+            trailer.maintenanceStatus === "Operational"
+        );
+
+        setTrailers(availableTrailers);
       } catch (error) {
         console.log("Error fetching trailers:", error);
       }
