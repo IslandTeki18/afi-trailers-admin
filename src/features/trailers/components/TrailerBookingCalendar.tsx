@@ -254,14 +254,6 @@ export const TrailerBookingCalendar: React.FC<TrailerBookingCalendarProps> = ({
     }
   };
 
-  const handleViewChange = (viewType: string) => {
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.changeView(viewType);
-      setCurrentMonthTitle(calendarApi.view.title);
-    }
-  };
-
   // Handle date selection to create a new booking
   const handleDateSelect = (selectInfo: any) => {
     // If onAddBooking prop is provided, use that

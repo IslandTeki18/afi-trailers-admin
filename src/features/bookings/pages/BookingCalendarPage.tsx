@@ -61,7 +61,7 @@ export const BookingCalendarPage = () => {
       try {
         const response = await fetchBookings();
 
-        const transformedBookings = response.map((booking: any) => {
+        const transformedBookings = response.bookings.map((booking: any) => {
           const customer = booking.customerId || {};
 
           const startDate = new Date(booking.startDate);
