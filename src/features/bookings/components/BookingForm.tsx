@@ -7,6 +7,8 @@ import { Textarea } from "@/components/Textarea";
 import { Customer } from "@/features/customers/types/customer.types";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { Trailer } from "@/features/trailers/types/trailer.types";
+import { arePeriodsOverlapping } from "../utils/arePeriodsOverlapping";
+import { isTrailerAvailable } from "../utils/isTrailerAvailable";
 
 interface BookingFormProps {
   customers: Customer[];
@@ -23,6 +25,7 @@ interface BookingFormProps {
     | "base"
     | "gray"
     | "info";
+  existingBookings?: Booking[];
 }
 
 export const BookingForm: React.FC<BookingFormProps> = ({
@@ -33,6 +36,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   onCancel,
   isLoading = false,
   variant = "base",
+  existingBookings = [],
 }) => {
   // Add state for single day rental
   const [isSingleDayRental, setIsSingleDayRental] = useState(false);
@@ -130,6 +134,20 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     { value: "50", label: "50%" },
     { value: "100", label: "100% (Full Payment)" },
   ];
+
+  const checkTrailerAvailability = () => {
+    if (!selectedTrailerId || !bookingData.startDate || !bookingData.endDate) {
+      return true; // Can't check without all details
+    }
+
+    return isTrailerAvailable(
+      selectedTrailerId,
+      bookingData.startDate,
+      bookingData.endDate,
+      existingBookings,
+      initialValues?._id // Pass the current booking ID when updating
+    );
+  };
 
   // Initialize date values with 8am timestamps
   useEffect(() => {
@@ -237,6 +255,27 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   }, [bookingData.serviceType, isDumpTrailer, selectedCustomerId]);
 
+  useEffect(() => {
+    if (errors.availability) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.availability;
+        return newErrors;
+      });
+    }
+
+    if (selectedTrailerId && bookingData.startDate && bookingData.endDate) {
+      const isAvailable = checkTrailerAvailability();
+
+      if (!isAvailable) {
+        setErrors((prev) => ({
+          ...prev,
+          availability: "This trailer is already booked for the selected dates",
+        }));
+      }
+    }
+  }, [selectedTrailerId, bookingData.startDate, bookingData.endDate]);
+
   // Function to fill delivery address from customer
   const fillDeliveryAddressFromCustomer = () => {
     if (selectedCustomerId) {
@@ -280,6 +319,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       new Date(bookingData.endDate) < new Date(bookingData.startDate)
     ) {
       newErrors.endDate = "End date must be after start date";
+    }
+
+    // Add availability check
+    if (selectedTrailerId && bookingData.startDate && bookingData.endDate) {
+      if (!checkTrailerAvailability()) {
+        newErrors.availability =
+          "This trailer is already booked for the selected dates";
+      }
     }
 
     setErrors(newErrors);
@@ -603,6 +650,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           </div>
         </div>
 
+        {errors.availability && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
+            <p className="font-medium">Availability Conflict</p>
+            <p>{errors.availability}</p>
+          </div>
+        )}
+
         {/* Status */}
         <div>
           <label
@@ -917,7 +971,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               Cancel
             </Button>
           )}
-          <Button type="submit" variant={variant} disabled={isLoading}>
+          <Button
+            type="submit"
+            variant={variant}
+            disabled={isLoading || !!errors.availability}
+            title={
+              errors.availability
+                ? "Cannot submit: Trailer is already booked for these dates"
+                : ""
+            }
+          >
             {isLoading
               ? "Saving..."
               : initialValues?._id

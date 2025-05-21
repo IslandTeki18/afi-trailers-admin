@@ -259,6 +259,7 @@ export const BookingCalendarPage = () => {
         onSubmit={handleCreateBooking}
         trailers={trailers}
         customers={customers}
+        existingBookings={bookings}
       />
     </div>
   );
