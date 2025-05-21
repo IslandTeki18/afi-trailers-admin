@@ -19,7 +19,6 @@ import { useToast } from "@/hooks/useToast";
 import { Trailer } from "@/features/trailers/types/trailer.types";
 import { Customer } from "@/features/customers/types/customer.types";
 
-// Use the same mock data as BookingPage
 
 export const BookingCalendarPage = () => {
   const { addToast } = useToast();
@@ -49,7 +48,6 @@ export const BookingCalendarPage = () => {
           fetchedTrailers = trailersData;
         }
 
-        // Filter out trailers that aren't available
         const availableTrailers = fetchedTrailers.filter(
           (trailer: any) =>
             trailer.availability &&
