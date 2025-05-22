@@ -3,6 +3,7 @@ import { format, isWithinInterval } from "date-fns"; // Add these imports
 import { Button } from "../../../components/Button";
 import { Booking, BookingStatus } from "../types/booking.types";
 import BookingDetailsPanel from "./BookingDetailsPanel";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 // Updated FullCalendar imports
 import FullCalendar from "@fullcalendar/react";
@@ -54,20 +55,20 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       bookingId: string;
     }>
   >([]);
+  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
+
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [currentMonthTitle, setCurrentMonthTitle] = useState("");
   const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
   // Convert bookings to FullCalendar events
   const calendarEvents = bookings.map((booking) => {
-    // Create proper date objects from booking dates
     const startDate = new Date(booking.startDate);
-    // Set to beginning of day to ensure full day coverage
     startDate.setHours(0, 0, 0, 0);
 
     const endDate = new Date(booking.endDate);
-    // FullCalendar uses exclusive end dates, so add a day to include the end date
-    // in the displayed range
+
     const displayEndDate = new Date(endDate);
     displayEndDate.setDate(displayEndDate.getDate() + 1);
     displayEndDate.setHours(0, 0, 0, 0);
@@ -76,7 +77,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       id: booking._id,
       title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
       start: startDate,
-      end: displayEndDate, // Use displayEndDate to make the range inclusive
+      end: displayEndDate, 
       allDay: true,
       backgroundColor: statusColors[booking.status],
       borderColor: statusColors[booking.status],
@@ -223,58 +224,34 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div className="flex items-center space-x-2">
           <Button variant={variant} size="small" onClick={handlePrevious}>
-            Previous
+            {isMobile ? "<" : "Previous"}
           </Button>
           <Button variant={variant} size="small" onClick={handleToday}>
             Today
           </Button>
           <Button variant={variant} size="small" onClick={handleNext}>
-            Next
+            {isMobile ? ">" : "Next"}
           </Button>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-800">
+        <h2
+          className={`${
+            isMobile ? "text-lg" : "text-xl"
+          } font-semibold text-gray-800 ${
+            isMobile ? "order-first w-full" : ""
+          }`}
+        >
           {currentMonthTitle}
         </h2>
-
-        <div className="flex flex-wrap items-center space-x-2">
-          <Button
-            variant="base"
-            size="small"
-            onClick={() => handleViewChange("dayGridMonth")}
-          >
-            Month
-          </Button>
-          <Button
-            variant="base"
-            size="small"
-            onClick={() => handleViewChange("timeGridWeek")}
-          >
-            Week
-          </Button>
-          <Button
-            variant="base"
-            size="small"
-            onClick={() => handleViewChange("timeGridDay")}
-          >
-            Day
-          </Button>
-          <Button
-            variant="base"
-            size="small"
-            onClick={() => handleViewChange("listMonth")}
-          >
-            List
-          </Button>
-        </div>
 
         <div>
           <Button
             variant={variant}
             onClick={onAddBooking}
             className="flex items-center"
+            size={isMobile ? "small" : "medium"}
           >
-            Add Booking
+            {isMobile ? "+" : "Add Booking"}
           </Button>
         </div>
       </div>
@@ -293,13 +270,13 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
           events={calendarEvents}
           selectable={true}
           selectMirror={true}
-          dayMaxEvents={true}
+          dayMaxEvents={isMobile ? 1 : true}
           weekends={true}
           initialDate={selectedDate}
           select={handleDateSelect}
           eventClick={handleEventClick}
           height="auto"
-          contentHeight={800}
+          contentHeight={isMobile ? 500 : 800}
           datesSet={(dateInfo) => {
             setCurrentMonthTitle(
               calendarRef.current?.getApi().view.title || ""
@@ -314,8 +291,16 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       {/* Booking details panel */}
       {selectedEvents.length > 0 && (
         <div className="mt-6">
-          <div className="px-4 py-3 bg-gray-100 rounded-t-lg">
-            <h3 className="text-lg font-medium text-gray-900">
+          <div
+            className={`px-${isMobile ? "2" : "4"} py-${
+              isMobile ? "2" : "3"
+            } bg-gray-100 rounded-t-lg`}
+          >
+            <h3
+              className={`${
+                isMobile ? "text-base" : "text-lg"
+              } font-medium text-gray-900`}
+            >
               Bookings for{" "}
               {lastSelectedDate
                 ? format(lastSelectedDate, "MMMM d, yyyy")
