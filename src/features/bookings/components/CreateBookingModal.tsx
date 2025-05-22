@@ -2,7 +2,7 @@ import React, { use, useEffect, useState } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Booking } from "../types/booking.types";
-import BookingForm from "./BookingForm";
+import BookingForm from "./BookingForm/BookingForm";
 import { fetchTrailers } from "@/features/trailers/api/fetchTrailers";
 import { Trailer } from "@/features/trailers/types/trailer.types";
 import { Customer } from "@/features/customers/types/customer.types";
