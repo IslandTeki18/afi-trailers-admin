@@ -290,7 +290,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   // Check trailer availability
   const checkTrailerAvailability = () => {
     if (!selectedTrailerId || !bookingData.startDate || !bookingData.endDate) {
-      return true; // Can't check without all details
+      return true;
     }
 
     return isTrailerAvailable(
@@ -441,6 +441,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
+  // Handle previous step
   const handlePrevious = () => {
     setCurrentStep((prev) => prev - 1);
   };
@@ -449,7 +450,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const handleSubmitForm = () => {
     setFormSubmitted(true);
     if (validateForm()) {
-      onSubmit(bookingData);
+      setTimeout(() => {
+        onSubmit(bookingData);
+      }, 0);
+      if (!initialValues?._id) {
+        setCurrentStep(BookingFormStep.Confirmation);
+      }
     }
   };
 
@@ -458,10 +464,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     setSelectedCustomerId(customerId);
   };
 
+  // Trailer selection handler
   const handleTrailerSelect = (trailerId: string) => {
     setSelectedTrailerId(trailerId);
   };
 
+  // Service type change handler
   const handleServiceTypeChange = (serviceType: "full" | "self") => {
     setBookingData((prev) => ({
       ...prev,
@@ -469,28 +477,29 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }));
   };
 
+  // Single day rental toggle handler
   const handleSingleDayRentalToggle = (checked: boolean) => {
     setIsSingleDayRental(checked);
 
     if (checked) {
-      // When checked, set end date to match start date
       setBookingData((prev) => ({
         ...prev,
         endDate: prev.startDate,
       }));
     } else {
-      // When unchecked, set end date to start date + 1 day
       setBookingData((prev) => ({
         ...prev,
-        endDate: new Date(new Date(prev.startDate).getTime() + 86400000), // Add 1 day in milliseconds
+        endDate: new Date(new Date(prev.startDate).getTime() + 86400000),
       }));
     }
   };
 
+  // Date change handler
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     if (!value) return;
-    const date = new Date(value);
-    date.setHours(8, 0, 0, 0);
+
+    const [year, month, day] = value.split("-").map((num) => parseInt(num, 10));
+    const date = new Date(year, month - 1, day, 8, 0, 0, 0);
 
     if (field === "startDate") {
       if (isSingleDayRental) {
@@ -505,7 +514,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           startDate: date,
         }));
 
-        // If start date is after end date, adjust end date
         if (bookingData.endDate && date > bookingData.endDate) {
           const newEndDate = new Date(date);
           newEndDate.setDate(newEndDate.getDate() + 1);
@@ -523,6 +531,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
+  // Booking data change handler
   const handleBookingDataChange = (field: keyof Booking, value: any) => {
     setBookingData((prev) => ({
       ...prev,
@@ -593,134 +602,144 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       <div className="mb-8">
         <Stepper steps={steps} variant="primary" />
       </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (currentStep === BookingFormStep.Review) {
+            handleSubmitForm();
+          }
+          return false;
+        }}
+        noValidate
+      >
+        <div className="space-y-6">
+          {/* Step Content - Show only the current step */}
+          {currentStep === BookingFormStep.CustomerTrailer && (
+            <CustomerTrailerStep
+              initialValues={initialValues}
+              bookingData={bookingData}
+              customers={customers}
+              filteredCustomers={filteredCustomers}
+              trailers={trailers}
+              errors={errors}
+              selectedCustomerId={selectedCustomerId}
+              selectedTrailerId={selectedTrailerId}
+              isDumpTrailer={isDumpTrailer}
+              variant={variant}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              onCustomerSelect={handleCustomerSelect}
+              onTrailerSelect={handleTrailerSelect}
+              onServiceTypeChange={handleServiceTypeChange}
+            />
+          )}
 
-      <div className="space-y-6">
-        {/* Step Content - Show only the current step */}
-        {currentStep === BookingFormStep.CustomerTrailer && (
-          <CustomerTrailerStep
-            initialValues={initialValues}
-            bookingData={bookingData}
-            customers={customers}
-            filteredCustomers={filteredCustomers}
-            trailers={trailers}
-            errors={errors}
-            selectedCustomerId={selectedCustomerId}
-            selectedTrailerId={selectedTrailerId}
-            isDumpTrailer={isDumpTrailer}
-            variant={variant}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            onCustomerSelect={handleCustomerSelect}
-            onTrailerSelect={handleTrailerSelect}
-            onServiceTypeChange={handleServiceTypeChange}
-          />
-        )}
+          {currentStep === BookingFormStep.RentalPeriod && (
+            <RentalPeriodStep
+              bookingData={bookingData}
+              isSingleDayRental={isSingleDayRental}
+              errors={errors}
+              duration={duration}
+              variant={variant}
+              trailers={trailers}
+              selectedTrailerId={selectedTrailerId}
+              formatDateForInput={formatDateForInput}
+              onSingleDayRentalToggle={handleSingleDayRentalToggle}
+              onDateChange={handleDateChange}
+            />
+          )}
 
-        {currentStep === BookingFormStep.RentalPeriod && (
-          <RentalPeriodStep
-            bookingData={bookingData}
-            isSingleDayRental={isSingleDayRental}
-            errors={errors}
-            duration={duration}
-            variant={variant}
-            trailers={trailers}
-            selectedTrailerId={selectedTrailerId}
-            formatDateForInput={formatDateForInput}
-            onSingleDayRentalToggle={handleSingleDayRentalToggle}
-            onDateChange={handleDateChange}
-          />
-        )}
+          {currentStep === BookingFormStep.Details && (
+            <DetailsStep
+              bookingData={bookingData}
+              variant={variant}
+              depositPercentage={depositPercentage}
+              isDumpTrailer={isDumpTrailer}
+              fillDeliveryAddressFromCustomer={fillDeliveryAddressFromCustomer}
+              errors={errors}
+              onBookingDataChange={handleBookingDataChange}
+              onDepositPercentageChange={setDepositPercentage}
+            />
+          )}
 
-        {currentStep === BookingFormStep.Details && (
-          <DetailsStep
-            bookingData={bookingData}
-            variant={variant}
-            depositPercentage={depositPercentage}
-            isDumpTrailer={isDumpTrailer}
-            fillDeliveryAddressFromCustomer={fillDeliveryAddressFromCustomer}
-            errors={errors}
-            onBookingDataChange={handleBookingDataChange}
-            onDepositPercentageChange={setDepositPercentage}
-          />
-        )}
+          {currentStep === BookingFormStep.Review && (
+            <ReviewStep
+              bookingData={bookingData}
+              selectedCustomerId={selectedCustomerId}
+              selectedTrailerId={selectedTrailerId}
+              customers={customers}
+              trailers={trailers}
+              isSingleDayRental={isSingleDayRental}
+              isDumpTrailer={isDumpTrailer}
+              duration={duration}
+              depositPercentage={depositPercentage}
+            />
+          )}
 
-        {currentStep === BookingFormStep.Review && (
-          <ReviewStep
-            bookingData={bookingData}
-            selectedCustomerId={selectedCustomerId}
-            selectedTrailerId={selectedTrailerId}
-            customers={customers}
-            trailers={trailers}
-            isSingleDayRental={isSingleDayRental}
-            isDumpTrailer={isDumpTrailer}
-            duration={duration}
-            depositPercentage={depositPercentage}
-          />
-        )}
+          {currentStep === BookingFormStep.Confirmation && (
+            <ConfirmationStep
+              bookingData={bookingData}
+              initialValues={initialValues}
+            />
+          )}
 
-        {currentStep === BookingFormStep.Confirmation && (
-          <ConfirmationStep
-            bookingData={bookingData}
-            initialValues={initialValues}
-          />
-        )}
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-6">
+            <div>
+              {currentStep > BookingFormStep.CustomerTrailer &&
+                currentStep < BookingFormStep.Confirmation && (
+                  <Button type="button" variant="gray" onClick={handlePrevious}>
+                    Previous
+                  </Button>
+                )}
+            </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between pt-6">
-          <div>
-            {currentStep > BookingFormStep.CustomerTrailer &&
-              currentStep < BookingFormStep.Confirmation && (
-                <Button type="button" variant="gray" onClick={handlePrevious}>
-                  Previous
+            <div className="flex space-x-3">
+              {onCancel && currentStep < BookingFormStep.Confirmation && (
+                <Button type="button" variant="gray" onClick={onCancel}>
+                  Cancel
                 </Button>
               )}
-          </div>
 
-          <div className="flex space-x-3">
-            {onCancel && currentStep < BookingFormStep.Confirmation && (
-              <Button type="button" variant="gray" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
+              {currentStep < BookingFormStep.Review && (
+                <Button type="button" variant={variant} onClick={handleNext}>
+                  Next
+                </Button>
+              )}
 
-            {currentStep < BookingFormStep.Review && (
-              <Button type="button" variant={variant} onClick={handleNext}>
-                Next
-              </Button>
-            )}
+              {currentStep === BookingFormStep.Review && (
+                <Button
+                  type="submit"
+                  variant={variant}
+                  disabled={isLoading || !!errors.availability}
+                  title={
+                    errors.availability
+                      ? "Cannot submit: Trailer is already booked for these dates"
+                      : ""
+                  }
+                >
+                  {isLoading
+                    ? "Saving..."
+                    : initialValues?._id
+                    ? "Update Booking"
+                    : "Create Booking"}
+                </Button>
+              )}
 
-            {currentStep === BookingFormStep.Review && (
-              <Button
-                type="button"
-                variant={variant}
-                onClick={handleNext}
-                disabled={isLoading || !!errors.availability}
-                title={
-                  errors.availability
-                    ? "Cannot submit: Trailer is already booked for these dates"
-                    : ""
-                }
-              >
-                {isLoading
-                  ? "Saving..."
-                  : initialValues?._id
-                  ? "Update Booking"
-                  : "Create Booking"}
-              </Button>
-            )}
-
-            {currentStep === BookingFormStep.Confirmation && (
-              <Button
-                type="button"
-                variant={variant}
-                onClick={onCancel || (() => {})}
-              >
-                Done
-              </Button>
-            )}
+              {currentStep === BookingFormStep.Confirmation && (
+                <Button
+                  type="button"
+                  variant={variant}
+                  onClick={onCancel || (() => {})}
+                >
+                  Done
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

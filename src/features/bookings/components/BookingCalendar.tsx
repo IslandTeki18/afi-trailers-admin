@@ -153,14 +153,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     }
   };
 
-  const handleViewChange = (viewType: string) => {
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.changeView(viewType);
-      setCurrentMonthTitle(calendarApi.view.title);
-    }
-  };
-
   // Handle date selection - updated to find all bookings on selected date
   const handleDateSelect = (selectInfo: any) => {
     const selectedDay = new Date(selectInfo.start);
@@ -182,6 +174,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
         end: endDate,
       });
     });
+
 
     if (eventsOnDay.length > 0) {
       const formattedEvents = eventsOnDay.map((booking) => ({

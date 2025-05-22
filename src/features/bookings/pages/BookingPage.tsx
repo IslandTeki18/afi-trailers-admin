@@ -23,13 +23,14 @@ export const BookingPage = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
 
+  // Fetch bookings
   useEffect(() => {
     const getBookings = async () => {
       try {
         const response = await fetchBookings();
 
         const transformedBookings = response.bookings.map((booking: any) => {
-          const customer = booking.customer || {};
+          const customer = booking.customer || booking.customerId || {};
 
           return {
             ...booking,
@@ -41,7 +42,8 @@ export const BookingPage = () => {
               phoneNumber: customer.phoneNumber || "",
             },
             trailerName: booking.trailerName || `Trailer #${booking.trailerId}`,
-            customerId: customer._id || booking.customerId,
+            customerId:
+              customer._id || booking.customerId?._id || booking.customerId,
           };
         });
 

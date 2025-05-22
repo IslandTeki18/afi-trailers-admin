@@ -88,18 +88,7 @@ export const BookingDetailsDrawer = ({
   const confirmStatusChange = async () => {
     if (confirmAction.status) {
       try {
-        // Show loading state
-        setIsUpdating(true);
-        addToast({
-          message: `Updating booking status to ${confirmAction.status}...`,
-          variant: "info",
-          duration: 10000,
-        });
-
-        const updatedBooking = await updateBookingStatus(
-          booking._id!,
-          confirmAction.status
-        );
+        await updateBookingStatus(booking._id!, confirmAction.status);
 
         onUpdateStatus(booking._id!, confirmAction.status);
 

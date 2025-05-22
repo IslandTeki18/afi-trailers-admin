@@ -70,7 +70,7 @@ export const BookingCalendarPage = () => {
         const response = await fetchBookings();
 
         const transformedBookings = response.bookings.map((booking: any) => {
-          const customer = booking.customerId || {};
+          const customer = booking.customer || {};
 
           const startDate = new Date(booking.startDate);
 
@@ -126,6 +126,8 @@ export const BookingCalendarPage = () => {
     loadCustomers();
   }, []);
 
+  // Handle booking creation
+  // @ts-ignore
   const handleCreateBooking = async (newBooking: Booking) => {
     try {
       let startDate = new Date(newBooking.startDate || new Date());
@@ -144,7 +146,6 @@ export const BookingCalendarPage = () => {
         endDate: endDate,
         status: newBooking.status || "pending",
         customerId: newBooking.customer._id!,
-        // @ts-ignore
         trailerId: newBooking.trailerId,
         serviceType: "full",
         totalAmount: newBooking.totalAmount || 0,
@@ -164,28 +165,36 @@ export const BookingCalendarPage = () => {
 
       const createdBooking = await createBooking(bookingWithId);
 
-      const [customer, trailer] = await Promise.all([
-        fetchCustomerById(createdBooking.customer._id!),
-        fetchTrailerById(createdBooking.trailerId),
-      ]);
+      if (createdBooking) {
+        try {
+          const [customer, trailer] = await Promise.all([
+            fetchCustomerById(createdBooking.customer._id!),
+            fetchTrailerById(createdBooking.trailerId),
+          ]);
 
-      const completeBooking: Booking = {
-        ...createdBooking,
-        customer,
-        trailerId: trailer._id || "No Trailer ID",
-        trailerName: trailer.name || "Unknown Trailer",
-      };
+          console.log("Customer:", customer);
+          console.log("Trailer:", trailer);
 
-      setBookings([completeBooking, ...bookings]);
-      setIsCreateModalOpen(false);
+          const completeBooking: Booking = {
+            ...createdBooking,
+            customer,
+            trailerId: trailer._id || "No Trailer ID",
+            trailerName: trailer.name || "Unknown Trailer",
+          };
 
-      addToast({
-        message: "Booking created successfully",
-        variant: "success",
-        duration: 3000,
-      });
+          setBookings((prevBookings) => [completeBooking, ...prevBookings]);
+
+          addToast({
+            message: "Booking created successfully",
+            variant: "success",
+            duration: 3000,
+          });
+        } catch (error) {
+          console.error("Error fetching additional booking data:", error);
+        }
+      }
     } catch (error) {
-      console.log("Error creating booking:", error);
+      console.error("Error creating booking:", error);
       addToast({
         message: "Failed to create booking. Please try again.",
         variant: "error",
@@ -194,6 +203,7 @@ export const BookingCalendarPage = () => {
     }
   };
 
+  // Handle viewing booking details
   const handleViewBooking = (bookingId: string) => {
     const booking = bookings.find((b) => b._id === bookingId);
     if (booking) {
@@ -202,6 +212,7 @@ export const BookingCalendarPage = () => {
     }
   };
 
+  // Handle updating booking status
   const handleUpdateBookingStatus = (
     bookingId: string,
     newStatus: BookingStatus

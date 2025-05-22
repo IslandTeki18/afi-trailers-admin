@@ -86,7 +86,7 @@ export const RentalPeriodStep = ({
               htmlFor="startDate"
               className="block text-sm font-medium text-gray-700"
             >
-              Pick-up Date
+              Start Date
             </label>
             <Input
               type="date"
