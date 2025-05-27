@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { format, isWithinInterval } from "date-fns"; // Add these imports
+import { format, isWithinInterval } from "date-fns";
 import { Button } from "../../../components/Button";
 import { Booking, BookingStatus } from "../types/booking.types";
 import BookingDetailsPanel from "./BookingDetailsPanel";
@@ -37,6 +37,14 @@ interface BookingCalendarProps {
   onDateSelect?: (date: Date) => void;
 }
 
+interface SelectedEvent {
+  id: string;
+  title: string;
+  start: string;
+  status: BookingStatus;
+  bookingId: string;
+}
+
 export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   bookings = [],
   onAddBooking,
@@ -46,15 +54,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   onDateSelect,
 }) => {
   const calendarRef = useRef<FullCalendar>(null);
-  const [selectedEvents, setSelectedEvents] = useState<
-    Array<{
-      id: string;
-      title: string;
-      start: string;
-      status: BookingStatus;
-      bookingId: string;
-    }>
-  >([]);
+  const [selectedEvents, setSelectedEvents] = useState<SelectedEvent[]>([]);
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
@@ -77,7 +77,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       id: booking._id,
       title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
       start: startDate,
-      end: displayEndDate, 
+      end: displayEndDate,
       allDay: true,
       backgroundColor: statusColors[booking.status],
       borderColor: statusColors[booking.status],
@@ -168,13 +168,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       const endDate = new Date(booking.endDate);
       endDate.setHours(23, 59, 59, 999);
 
-      
       return isWithinInterval(selectedDay, {
         start: startDate,
         end: endDate,
       });
     });
-
 
     if (eventsOnDay.length > 0) {
       const formattedEvents = eventsOnDay.map((booking) => ({
@@ -210,6 +208,10 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     setIsDetailsOpen(true);
 
     setLastSelectedDate(new Date(clickInfo.event.start));
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
   };
 
   return (
@@ -270,7 +272,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
           eventClick={handleEventClick}
           height="auto"
           contentHeight={isMobile ? 500 : 800}
-          datesSet={(dateInfo) => {
+          datesSet={() => {
             setCurrentMonthTitle(
               calendarRef.current?.getApi().view.title || ""
             );
@@ -281,19 +283,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       {/* Legend for booking statuses */}
       <BookingLegendStatus statusColors={statusColors} />
 
-      {/* Booking details panel */}
-      {selectedEvents.length > 0 && (
+      {/* Booking details panel - Fix for double rendering */}
+      {selectedEvents.length > 0 && isDetailsOpen && (
         <div className="mt-6">
-          <div
-            className={`px-${isMobile ? "2" : "4"} py-${
-              isMobile ? "2" : "3"
-            } bg-gray-100 rounded-t-lg`}
-          >
-            <h3
-              className={`${
-                isMobile ? "text-base" : "text-lg"
-              } font-medium text-gray-900`}
-            >
+          <div className={`px-4 py-3 bg-gray-100 rounded-t-lg`}>
+            <h3 className={`text-lg font-medium text-gray-900`}>
               Bookings for{" "}
               {lastSelectedDate
                 ? format(lastSelectedDate, "MMMM d, yyyy")
@@ -301,16 +295,14 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </h3>
           </div>
           <div className="space-y-4">
-            {selectedEvents.map((event) => (
-              <BookingDetailsPanel
-                key={event.id}
-                isOpen={isDetailsOpen}
-                onClose={() => setIsDetailsOpen(false)}
-                selectedEvent={event}
-                onViewBooking={onViewBooking}
-                variant={variant}
-              />
-            ))}
+            {/* Only use a single BookingDetailsPanel for all events */}
+            <BookingDetailsPanel
+              isOpen={isDetailsOpen}
+              onClose={handleCloseDetails}
+              selectedEvents={selectedEvents}
+              onViewBooking={onViewBooking}
+              variant={variant}
+            />
           </div>
         </div>
       )}

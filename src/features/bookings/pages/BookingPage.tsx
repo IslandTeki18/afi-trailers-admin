@@ -187,7 +187,6 @@ export const BookingPage = () => {
     try {
       await deleteBooking(bookingId);
 
-      // Remove the deleted booking from state
       setBookings((prevBookings) =>
         prevBookings.filter((booking) => booking._id !== bookingId)
       );
