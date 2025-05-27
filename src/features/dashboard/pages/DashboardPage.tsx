@@ -16,6 +16,10 @@ import { fetchCustomers } from "@/features/customers/api/fetchCustomers";
 import { createBooking } from "@/features/bookings/api/createBooking";
 import { Trailer } from "@/features/trailers/types/trailer.types";
 import { Customer } from "@/features/customers/types/customer.types";
+import { CreateBookingPayload } from "@/features/bookings/api/createBooking";
+import { validateBookingData } from "@/features/bookings/api/createBooking";
+import { fetchCustomerById } from "@/features/customers/api/fetchCustomerById";
+import { fetchTrailerById } from "@/features/trailers/api/fetchTrailerById";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
@@ -147,40 +151,80 @@ export const DashboardPage = () => {
   };
 
   // Handle submission of new booking
-  const handleCreateBooking = async (bookingData: Booking) => {
-    setIsSubmittingBooking(true);
-    try {
-      const response = await createBooking(bookingData);
-
-      const newBooking = {
-        ...response.booking,
-        customer: bookingData.customer,
-        trailerName:
-          bookingData.trailerName || `Trailer #${bookingData.trailerId}`,
-        startDate: new Date(bookingData.startDate),
-        endDate: new Date(bookingData.endDate),
-      };
-
-      setBookings((prevBookings) => [...prevBookings, newBooking]);
-
-      addToast({
-        message: "Booking created successfully",
-        variant: "success",
-        duration: 3000,
-      });
-
-      setIsCreateModalOpen(false);
-    } catch (error) {
-      console.error("Failed to create booking:", error);
-      addToast({
-        message: "Failed to create booking. Please try again.",
-        variant: "error",
-        duration: 5000,
-      });
-    } finally {
-      setIsSubmittingBooking(false);
-    }
-  };
+  const handleCreateBooking = async (newBooking: Booking) => {
+      try {
+        let startDate = new Date(newBooking.startDate || new Date());
+        startDate.setHours(12, 0, 0, 0);
+  
+        let endDate = new Date(newBooking.endDate || new Date());
+        endDate.setHours(12, 0, 0, 0);
+  
+        const returnDate = new Date(endDate);
+        returnDate.setDate(returnDate.getDate() + 1);
+        returnDate.setHours(8, 0, 0, 0);
+  
+        const bookingWithId: CreateBookingPayload = {
+          ...newBooking,
+          startDate: startDate,
+          endDate: endDate,
+          status: newBooking.status || "pending",
+          customerId: newBooking.customer._id!,
+          trailerId: newBooking.trailerId,
+          serviceType: "full",
+          totalAmount: newBooking.totalAmount || 0,
+        };
+  
+        const { isValid, errors } = validateBookingData(bookingWithId);
+        if (!isValid) {
+          addToast({
+            message: `Error creating booking: ${Object.values(errors).join(
+              ", "
+            )}`,
+            variant: "error",
+            duration: 5000,
+          });
+          return;
+        }
+  
+        const createdBooking = await createBooking(bookingWithId);
+  
+        if (createdBooking) {
+          try {
+            const [customer, trailer] = await Promise.all([
+              fetchCustomerById(createdBooking.customer._id!),
+              fetchTrailerById(createdBooking.trailerId),
+            ]);
+  
+            console.log("Customer:", customer);
+            console.log("Trailer:", trailer);
+  
+            const completeBooking: Booking = {
+              ...createdBooking,
+              customer,
+              trailerId: trailer._id || "No Trailer ID",
+              trailerName: trailer.name || "Unknown Trailer",
+            };
+  
+            setBookings((prevBookings) => [completeBooking, ...prevBookings]);
+  
+            addToast({
+              message: "Booking created successfully",
+              variant: "success",
+              duration: 3000,
+            });
+          } catch (error) {
+            console.error("Error fetching additional booking data:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error creating booking:", error);
+        addToast({
+          message: "Failed to create booking. Please try again.",
+          variant: "error",
+          duration: 5000,
+        });
+      }
+    };
 
   const handleViewBooking = (bookingId: string) => {
     const booking = bookings.find((b) => b._id === bookingId);
