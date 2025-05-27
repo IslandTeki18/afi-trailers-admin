@@ -7,7 +7,11 @@ import { axiosInstance } from "../../../libs/axios";
  */
 export const deleteBooking = async (bookingId: string): Promise<void> => {
   try {
-    await axiosInstance.delete(`/bookings/${bookingId}`);
+    const token = localStorage.getItem("atr_auth_token");
+    const headers = {
+      Authorization: token ? `Bearer ${token}` : "",
+    };
+    await axiosInstance.delete(`/bookings/${bookingId}`, { headers });
   } catch (error) {
     console.error("Error deleting booking:", error);
     throw error;

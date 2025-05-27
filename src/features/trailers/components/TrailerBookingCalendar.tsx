@@ -3,7 +3,7 @@ import { format, isWithinInterval } from "date-fns";
 import { Button } from "../../../components/Button";
 import { Booking, BookingStatus } from "../../bookings/types/booking.types";
 import { Trailer } from "../types/trailer.types";
-import { CreateBookingModal } from "../../bookings/components/CreateBookingModal";
+import { CreateBookingModal } from "../../bookings/components/modals/CreateBookingModal";
 import { fetchCustomers } from "../../customers/api/fetchCustomers";
 import { Customer } from "../../customers/types/customer.types";
 
@@ -375,10 +375,7 @@ export const TrailerBookingCalendar: React.FC<TrailerBookingCalendarProps> = ({
       <div className="bg-white rounded-lg shadow p-4">
         <FullCalendar
           ref={calendarRef}
-          plugins={[
-            dayGridPlugin,
-            interactionPlugin,
-          ]}
+          plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={false}
           events={calendarEvents}

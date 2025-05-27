@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/Button";
 import { AutoComplete } from "@/components/AutoComplete";
 import { Tabs } from "@/components/Tabs";
@@ -7,11 +7,12 @@ import { BookingTable } from "../components/BookingTable";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { useNavigate } from "react-router-dom";
 import { fetchBookings } from "../api/fetchBookings";
-
-// Mock data for demonstration
+import { deleteBooking } from "../api/deleteBooking";
+import { useToast } from "../../../hooks/useToast";
 
 export const BookingPage = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +23,7 @@ export const BookingPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch bookings
   useEffect(() => {
@@ -180,6 +182,36 @@ export const BookingPage = () => {
     setIsBookingDetailsOpen(true);
   };
 
+  const handleDeleteBooking = async (bookingId: string) => {
+    setIsDeleting(true);
+    try {
+      await deleteBooking(bookingId);
+
+      // Remove the deleted booking from state
+      setBookings((prevBookings) =>
+        prevBookings.filter((booking) => booking._id !== bookingId)
+      );
+
+      addToast({
+        message: "Booking deleted successfully",
+        variant: "success",
+        duration: 3000,
+      });
+
+      setIsBookingDetailsOpen(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      addToast({
+        message: "Failed to delete booking. Please try again.",
+        variant: "error",
+        duration: 5000,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const tabItems = [
     {
       id: "all",
@@ -279,8 +311,10 @@ export const BookingPage = () => {
           onClose={() => setIsBookingDetailsOpen(false)}
           booking={selectedBooking}
           onUpdateStatus={handleUpdateBookingStatus}
+          onDeleteBooking={handleDeleteBooking}
         />
       )}
+      
     </div>
   );
 };

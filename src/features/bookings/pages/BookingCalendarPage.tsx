@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "../../../components/Button";
 import { BookingCalendar } from "../components/BookingCalendar";
-import { CreateBookingModal } from "../components/CreateBookingModal";
+import { CreateBookingModal } from "../components/modals/CreateBookingModal";
 import { BookingDetailsDrawer } from "../components/BookingDetailsDrawer";
 import { Booking, BookingStatus } from "../types/booking.types";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +18,7 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { Trailer } from "@/features/trailers/types/trailer.types";
 import { Customer } from "@/features/customers/types/customer.types";
-
+import { deleteBooking } from "../api/deleteBooking";
 
 export const BookingCalendarPage = () => {
   const { addToast } = useToast();
@@ -30,6 +30,7 @@ export const BookingCalendarPage = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchTrailersData = async () => {
@@ -125,6 +126,37 @@ export const BookingCalendarPage = () => {
 
     loadCustomers();
   }, []);
+
+  // Handle booking deletion
+  const handleDeleteBooking = async (bookingId: string) => {
+    setIsDeleting(true);
+    try {
+      await deleteBooking(bookingId);
+
+      // Remove the deleted booking from state
+      setBookings((prevBookings) =>
+        prevBookings.filter((booking) => booking._id !== bookingId)
+      );
+
+      addToast({
+        message: "Booking deleted successfully",
+        variant: "success",
+        duration: 3000,
+      });
+
+      setIsBookingDetailsOpen(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      addToast({
+        message: "Failed to delete booking. Please try again.",
+        variant: "error",
+        duration: 5000,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Handle booking creation
   // @ts-ignore
@@ -261,6 +293,7 @@ export const BookingCalendarPage = () => {
           onClose={() => setIsBookingDetailsOpen(false)}
           booking={selectedBooking}
           onUpdateStatus={handleUpdateBookingStatus}
+          onDeleteBooking={handleDeleteBooking}
         />
       )}
 
