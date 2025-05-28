@@ -36,8 +36,8 @@ const BookingDetailsPanel: React.FC<BookingDetailsPanelProps> = ({
     <div className="bg-white shadow-md rounded-b-lg divide-y divide-gray-200">
       {selectedEvents.map((event) => (
         <div key={event.id} className="p-4">
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex-col justify-between items-start">
+            <div className="pb-4">
               <h4 className="text-lg font-medium text-gray-900">
                 {event.title}
               </h4>

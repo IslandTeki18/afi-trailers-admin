@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { format } from "date-fns";
 import { Drawer } from "../../../components/Drawer";
 import { Button } from "../../../components/Button";
@@ -15,6 +15,7 @@ interface TrailerDetailsDrawerProps {
   trailer: Trailer;
   onEdit?: (trailer: Trailer) => void;
   onDelete?: (trailerId: string) => void;
+  extraContent?: ReactNode;
 }
 
 export const TrailerDetailsDrawer = ({
@@ -23,6 +24,7 @@ export const TrailerDetailsDrawer = ({
   trailer,
   onEdit,
   onDelete,
+  extraContent,
 }: TrailerDetailsDrawerProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -378,6 +380,8 @@ export const TrailerDetailsDrawer = ({
               </div>
             </div>
           )}
+
+          {extraContent ? extraContent : null}
 
           {/* Rental activity section */}
           <div>

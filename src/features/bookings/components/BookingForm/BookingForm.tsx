@@ -614,7 +614,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         noValidate
       >
         <div className="space-y-6">
-          {/* Step Content - Show only the current step */}
           {currentStep === BookingFormStep.CustomerTrailer && (
             <CustomerTrailerStep
               initialValues={initialValues}

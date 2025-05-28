@@ -6,6 +6,8 @@ import { Checkbox } from "../../../components/Checkbox";
 import { Textarea } from "../../../components/Textarea";
 import { Trailer } from "../types/trailer.types";
 import { Button } from "../../../components/Button";
+import { TrailerBookedDates } from "../types/trailer.types";
+import { TrailerUsageHistory } from "../types/trailer.types";
 
 interface TrailerFormModalProps {
   isOpen: boolean;
@@ -77,6 +79,37 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   const [towReq, setTowReq] = useState<string>("");
   const [photoUrl, setPhotoUrl] = useState<string>("");
 
+  const [showBookedDateModal, setShowBookedDateModal] =
+    useState<boolean>(false);
+  const [showUsageHistoryModal, setShowUsageHistoryModal] =
+    useState<boolean>(false);
+  const [currentBookedDateIndex, setCurrentBookedDateIndex] = useState<
+    number | null
+  >(null);
+  const [currentUsageHistoryIndex, setCurrentUsageHistoryIndex] = useState<
+    number | null
+  >(null);
+  const [bookedDateForm, setBookedDateForm] = useState<TrailerBookedDates>({
+    startDate: new Date(),
+    endDate: new Date(),
+    customerId: "",
+    bookingId: "",
+    timeStamp: new Date(),
+    serviceType: "full",
+    status: "pending",
+  });
+  const [usageHistoryForm, setUsageHistoryForm] = useState<TrailerUsageHistory>(
+    {
+      _id: "",
+      customerId: "",
+      rentalPeriod: { start: new Date(), end: new Date() },
+      totalPaid: 0,
+      serviceType: "full",
+      feedback: undefined,
+      incidentReport: undefined,
+    }
+  );
+
   const trailerTypeOptions = [
     { value: "", label: "Select Type" },
     { value: "Dump", label: "Dump Trailer" },
@@ -90,6 +123,98 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
     { value: "Maintenance", label: "Maintenance" },
     { value: "Out of Service", label: "Out of Service" },
   ];
+
+  const handleAddBookedDate = () => {
+    setCurrentBookedDateIndex(null);
+    setBookedDateForm({
+      startDate: new Date(),
+      endDate: new Date(),
+      customerId: "",
+      bookingId: "",
+      timeStamp: new Date(),
+      serviceType: "full",
+      status: "pending",
+    });
+    setShowBookedDateModal(true);
+  };
+
+  const handleEditBookedDate = (index: number) => {
+    setCurrentBookedDateIndex(index);
+    setBookedDateForm({ ...formData.bookedDates[index] });
+    setShowBookedDateModal(true);
+  };
+
+  const handleRemoveBookedDate = (index: number) => {
+    if (confirm("Are you sure you want to remove this booking?")) {
+      setFormData({
+        ...formData,
+        bookedDates: formData.bookedDates.filter((_, i) => i !== index),
+      });
+    }
+  };
+
+  const handleSaveBookedDate = () => {
+    const updatedBookedDates = [...formData.bookedDates];
+
+    if (currentBookedDateIndex !== null) {
+      // Update existing entry
+      updatedBookedDates[currentBookedDateIndex] = bookedDateForm;
+    } else {
+      // Add new entry
+      updatedBookedDates.push(bookedDateForm);
+    }
+
+    setFormData({
+      ...formData,
+      bookedDates: updatedBookedDates,
+    });
+    setShowBookedDateModal(false);
+  };
+
+  const handleAddUsageHistory = () => {
+    setCurrentUsageHistoryIndex(null);
+    setUsageHistoryForm({
+      _id: "",
+      customerId: "",
+      rentalPeriod: { start: new Date(), end: new Date() },
+      totalPaid: 0,
+      serviceType: "full",
+    });
+    setShowUsageHistoryModal(true);
+  };
+
+  const handleEditUsageHistory = (index: number) => {
+    setCurrentUsageHistoryIndex(index);
+    setUsageHistoryForm({ ...formData.usageHistory[index] });
+    setShowUsageHistoryModal(true);
+  };
+  
+  const handleRemoveUsageHistory = (index: number) => {
+    if (confirm("Are you sure you want to remove this usage history entry?")) {
+      setFormData({
+        ...formData,
+        usageHistory: formData.usageHistory.filter((_, i) => i !== index),
+      });
+    }
+  };
+
+  const handleSaveUsageHistory = () => {
+    const updatedUsageHistory = [...formData.usageHistory];
+
+    if (currentUsageHistoryIndex !== null) {
+      // Update existing entry
+      updatedUsageHistory[currentUsageHistoryIndex] = usageHistoryForm;
+    } else {
+      // Add new entry
+      updatedUsageHistory.push(usageHistoryForm);
+    }
+
+    setFormData({
+      ...formData,
+      usageHistory: updatedUsageHistory,
+    });
+    setShowUsageHistoryModal(false);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -203,7 +328,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   };
 
   const handleArrayItemAdd = (
-    arrayName: "features" | "towingRequirements" | "photos",
+    arrayName: "features" | "towingRequirements" | "photos" | "serviceTypes",
     item: string
   ) => {
     if (!item.trim()) return;
@@ -223,7 +348,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   };
 
   const handleArrayItemRemove = (
-    arrayName: "features" | "towingRequirements" | "photos",
+    arrayName: "features" | "towingRequirements" | "photos" | "serviceTypes",
     index: number
   ) => {
     setFormData({
@@ -233,7 +358,7 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
   };
 
   const handleServiceTypeToggle = (type: "full" | "self") => {
-    const currentTypes = formData.serviceTypes || [];
+    const currentTypes = [...(formData.serviceTypes || [])];
 
     if (currentTypes.includes(type)) {
       setFormData({
@@ -302,7 +427,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 Basic Information
               </h4>
             </div>
-
             <div className="sm:col-span-4">
               <Input
                 label="Trailer Name"
@@ -315,7 +439,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 required
               />
             </div>
-
             <div className="sm:col-span-2">
               <Select
                 label="Trailer Type"
@@ -329,7 +452,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 required
               />
             </div>
-
             <div className="sm:col-span-6">
               <span className="">Description</span>
               <Textarea
@@ -341,14 +463,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 variant="primary"
               />
             </div>
-
             {/* Dimensions Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Dimensions & Capacity
               </h4>
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Length (feet)"
@@ -362,7 +482,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 step={1}
               />
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Width (feet)"
@@ -375,7 +494,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 required
               />
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Height (feet)"
@@ -389,7 +507,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 step={1}
               />
             </div>
-
             <div className="sm:col-span-3">
               <Input
                 label="Capacity"
@@ -403,7 +520,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 step={1}
               />
             </div>
-
             <div className="sm:col-span-3">
               <Input
                 label="Empty Weight (lbs)"
@@ -417,7 +533,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 step={1}
               />
             </div>
-
             <div className="sm:col-span-3">
               <Input
                 label="Maximum Load (lbs)"
@@ -431,14 +546,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 step={1}
               />
             </div>
-
             {/* Location Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Location
               </h4>
             </div>
-
             <div className="sm:col-span-6">
               <Input
                 label="Address"
@@ -451,7 +564,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 required
               />
             </div>
-
             <div className="sm:col-span-3">
               <Input
                 label="Latitude"
@@ -464,7 +576,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 variant="primary"
               />
             </div>
-
             <div className="sm:col-span-3">
               <Input
                 label="Longitude"
@@ -477,14 +588,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 variant="primary"
               />
             </div>
-
             {/* Rental Information Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Rental Information
               </h4>
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Full Day Rate ($)"
@@ -499,7 +608,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 required
               />
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Half Day Rate ($)"
@@ -513,7 +621,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 variant="primary"
               />
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Delivery Fee ($)"
@@ -528,7 +635,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 required
               />
             </div>
-
             <div className="sm:col-span-2">
               <Input
                 label="Weekend Surcharge ($)"
@@ -542,14 +648,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 variant="primary"
               />
             </div>
-
             {/* Availability Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Availability
               </h4>
             </div>
-
             <div className="sm:col-span-3">
               <div className="flex items-center">
                 <Checkbox
@@ -566,7 +670,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 </label>
               </div>
             </div>
-
             <div className="sm:col-span-3">
               <div className="flex items-center">
                 <Checkbox
@@ -583,7 +686,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 </label>
               </div>
             </div>
-
             {formData.availability?.isAvailable === false && (
               <div className="sm:col-span-3">
                 <Input
@@ -603,14 +705,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 />
               </div>
             )}
-
             {/* Maintenance Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Maintenance
               </h4>
             </div>
-
             <div className="sm:col-span-6 flex flex-col space-y-4">
               <div>
                 <Select
@@ -662,14 +762,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 />
               </div>
             </div>
-
             {/* Photos Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Photos
               </h4>
             </div>
-
             <div className="sm:col-span-6">
               <label className="block text-sm font-medium text-gray-700">
                 Trailer Photos
@@ -712,14 +810,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 </div>
               )}
             </div>
-
             {/* Service Types Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Service Types
               </h4>
             </div>
-
             <div className="sm:col-span-6">
               <div className="mt-2 space-y-2 flex flex-col">
                 <div className="flex items-center">
@@ -752,7 +848,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 </div>
               </div>
             </div>
-
             <div className="sm:col-span-6">
               <div className="flex items-center">
                 <Checkbox
@@ -775,14 +870,12 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 </label>
               </div>
             </div>
-
             {/* Features Section */}
             <div className="sm:col-span-6">
               <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b">
                 Features & Requirements
               </h4>
             </div>
-
             <div className="sm:col-span-6">
               <label className="block text-sm font-medium text-gray-700">
                 Features
@@ -824,7 +917,6 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                 </div>
               )}
             </div>
-
             <div className="sm:col-span-6">
               <label className="block text-sm font-medium text-gray-700">
                 Towing Requirements
@@ -871,6 +963,218 @@ export const TrailerFormModal: React.FC<TrailerFormModalProps> = ({
                   </div>
                 )}
             </div>
+            {/* Trailer Booked Dates Section */}
+            <div className="sm:col-span-6">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b flex justify-between items-center">
+                <span>Booked Dates</span>
+                <Button
+                  type="button"
+                  variant="base"
+                  size="small"
+                  onClick={() => handleAddBookedDate()}
+                  className="text-xs"
+                >
+                  Add Booking
+                </Button>
+              </h4>
+            </div>
+            {formData.bookedDates && formData.bookedDates.length > 0 ? (
+              <div className="sm:col-span-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Start Date
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          End Date
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Service Type
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Status
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {formData.bookedDates.map((booking, index) => (
+                        <tr key={`booking-${index}`}>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            {new Date(booking.startDate).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            {new Date(booking.endDate).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs capitalize">
+                            {booking.serviceType}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs capitalize">
+                            <span
+                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                booking.status === "confirmed"
+                                  ? "bg-green-100 text-green-800"
+                                  : booking.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {booking.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleEditBookedDate(index)}
+                              className="text-indigo-600 hover:text-indigo-900 mr-2"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveBookedDate(index)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="sm:col-span-6">
+                <p className="text-sm text-gray-500 italic">
+                  No bookings scheduled for this trailer.
+                </p>
+              </div>
+            )}
+            {/* Trailer Usage History Section */}
+            <div className="sm:col-span-6 mt-6">
+              <h4 className="text-md font-medium text-gray-700 mb-2 pb-2 border-b flex justify-between items-center">
+                <span>Usage History</span>
+                <Button
+                  type="button"
+                  variant="base"
+                  size="small"
+                  onClick={() => handleAddUsageHistory()}
+                  className="text-xs"
+                >
+                  Add Usage Record
+                </Button>
+              </h4>
+            </div>
+            {formData.usageHistory && formData.usageHistory.length > 0 ? (
+              <div className="sm:col-span-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Period
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Service Type
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Amount
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Rating
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {formData.usageHistory.map((usage, index) => (
+                        <tr key={`usage-${index}`}>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            {new Date(
+                              usage.rentalPeriod.start
+                            ).toLocaleDateString()}{" "}
+                            -{" "}
+                            {new Date(
+                              usage.rentalPeriod.end
+                            ).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs capitalize">
+                            {usage.serviceType}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            ${usage.totalPaid.toFixed(2)}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs">
+                            {usage.feedback?.rating
+                              ? `${usage.feedback.rating}/5`
+                              : "N/A"}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleEditUsageHistory(index)}
+                              className="text-indigo-600 hover:text-indigo-900 mr-2"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveUsageHistory(index)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="sm:col-span-6">
+                <p className="text-sm text-gray-500 italic">
+                  No usage history for this trailer.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

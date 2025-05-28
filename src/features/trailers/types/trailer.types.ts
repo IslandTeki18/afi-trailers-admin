@@ -46,7 +46,7 @@ export type Trailer = {
   };
 };
 
-type TrailerBookedDates = {
+export type TrailerBookedDates = {
   startDate: Date;
   endDate: Date;
   customerId: string;
@@ -56,7 +56,7 @@ type TrailerBookedDates = {
   status: "confirmed" | "pending" | "cancelled";
 };
 
-type TrailerUsageHistory = {
+export type TrailerUsageHistory = {
   _id: string;
   customerId: string;
   rentalPeriod: { start: Date; end: Date };

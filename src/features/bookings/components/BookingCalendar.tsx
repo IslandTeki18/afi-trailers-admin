@@ -12,6 +12,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import { BookingLegendStatus } from "./BookingLegendStatus";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 
 // Status to color mapping for booking events
 const statusColors: Record<BookingStatus, string> = {
@@ -218,14 +219,14 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     <div className="booking-calendar space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div className="flex items-center space-x-2">
-          <Button variant={variant} size="small" onClick={handlePrevious}>
-            {isMobile ? "<" : "Previous"}
+          <Button variant={variant} size="medium" onClick={handlePrevious}>
+            <ChevronLeftIcon className="h-5 w-5" />
           </Button>
-          <Button variant={variant} size="small" onClick={handleToday}>
+          <Button variant={variant} size="medium" onClick={handleToday}>
             Today
           </Button>
-          <Button variant={variant} size="small" onClick={handleNext}>
-            {isMobile ? ">" : "Next"}
+          <Button variant={variant} size="medium" onClick={handleNext}>
+            <ChevronRightIcon className="h-5 w-5" />
           </Button>
         </div>
 
@@ -244,14 +245,14 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             variant={variant}
             onClick={onAddBooking}
             className="flex items-center"
-            size={isMobile ? "small" : "medium"}
+            size="medium"
           >
-            {isMobile ? "+" : "Add Booking"}
+            Add Booking
           </Button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className={`bg-white rounded-lg shadow ${isMobile ? "" : "p-4"}`}>
         <FullCalendar
           ref={calendarRef}
           plugins={[
@@ -295,7 +296,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </h3>
           </div>
           <div className="space-y-4">
-            {/* Only use a single BookingDetailsPanel for all events */}
             <BookingDetailsPanel
               isOpen={isDetailsOpen}
               onClose={handleCloseDetails}
