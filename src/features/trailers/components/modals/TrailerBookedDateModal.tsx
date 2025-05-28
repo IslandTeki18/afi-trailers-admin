@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "../../../../components/Modal";
 import { Button } from "../../../../components/Button";
 import { Input } from "../../../../components/Input";
+import { Select, SelectOption } from "../../../../components/Select";
 import { TrailerBookedDates } from "../../types/trailer.types";
 
 interface TrailerBookedDateModalProps {
@@ -29,15 +30,26 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
     status: "pending",
   };
 
-  const [formData, setFormData] =
-    useState<TrailerBookedDates>(defaultBookedDate);
+  const [formData, setFormData] = useState<TrailerBookedDates>(
+    initialData || defaultBookedDate
+  );
+
+  // Define options for select inputs
+  const serviceTypeOptions: SelectOption[] = [
+    { value: "full", label: "Full Service" },
+    { value: "self", label: "Self Service" },
+  ];
+
+  const statusOptions: SelectOption[] = [
+    { value: "confirmed", label: "Confirmed" },
+    { value: "pending", label: "Pending" },
+    { value: "cancelled", label: "Cancelled" },
+  ];
 
   // Reset form when modal opens or initialData changes
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-    } else {
-      setFormData(defaultBookedDate);
+    if (isOpen) {
+      setFormData(initialData || defaultBookedDate);
     }
   }, [isOpen, initialData]);
 
@@ -46,9 +58,16 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
     onSave(formData);
   };
 
-  const formatDateForInput = (date: Date | string) => {
+  const formatDateForInput = (date: Date | string | undefined) => {
+    if (!date) return "";
     const d = date instanceof Date ? date : new Date(date);
-    return d.toISOString().split("T")[0];
+    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+  };
+
+  const formatDateTimeForInput = (date: Date | string | undefined) => {
+    if (!date) return "";
+    const d = date instanceof Date ? date : new Date(date);
+    return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 16);
   };
 
   return (
@@ -70,7 +89,9 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    startDate: new Date(e.target.value),
+                    startDate: e.target.value
+                      ? new Date(e.target.value)
+                      : new Date(),
                   })
                 }
                 variant="primary"
@@ -88,7 +109,9 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    endDate: new Date(e.target.value),
+                    endDate: e.target.value
+                      ? new Date(e.target.value)
+                      : new Date(),
                   })
                 }
                 variant="primary"
@@ -101,7 +124,7 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
                 label="Customer ID"
                 id="booking-customer-id"
                 name="customerId"
-                value={formData.customerId}
+                value={formData.customerId || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -118,7 +141,7 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
                 label="Booking ID"
                 id="booking-id"
                 name="bookingId"
-                value={formData.bookingId}
+                value={formData.bookingId || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -131,30 +154,34 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
             </div>
 
             <div className="sm:col-span-3">
-              <label className="block text-sm font-medium text-gray-700">
-                Service Type
-              </label>
-              <select
-                value={formData.serviceType}
+              <Select
+                id="booking-service-type"
+                label="Service Type"
+                options={serviceTypeOptions}
+                value={formData.serviceType || "full"}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
                     serviceType: e.target.value as "full" | "self",
                   })
                 }
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="full">Full Service</option>
-                <option value="self">Self Service</option>
-              </select>
+                onOptionChange={(option) =>
+                  setFormData({
+                    ...formData,
+                    serviceType: option.value as "full" | "self",
+                  })
+                }
+                variant="primary"
+                required
+              />
             </div>
 
             <div className="sm:col-span-3">
-              <label className="block text-sm font-medium text-gray-700">
-                Status
-              </label>
-              <select
-                value={formData.status}
+              <Select
+                id="booking-status"
+                label="Status"
+                options={statusOptions}
+                value={formData.status || "pending"}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -164,12 +191,18 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
                       | "cancelled",
                   })
                 }
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="confirmed">Confirmed</option>
-                <option value="pending">Pending</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+                onOptionChange={(option) =>
+                  setFormData({
+                    ...formData,
+                    status: option.value as
+                      | "confirmed"
+                      | "pending"
+                      | "cancelled",
+                  })
+                }
+                variant="primary"
+                required
+              />
             </div>
 
             <div className="sm:col-span-6">
@@ -178,15 +211,13 @@ export const TrailerBookedDateModal: React.FC<TrailerBookedDateModalProps> = ({
                 id="booking-timestamp"
                 name="timeStamp"
                 type="datetime-local"
-                value={
-                  formData.timeStamp instanceof Date
-                    ? formData.timeStamp.toISOString().slice(0, 16)
-                    : new Date(formData.timeStamp).toISOString().slice(0, 16)
-                }
+                value={formatDateTimeForInput(formData.timeStamp)}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    timeStamp: new Date(e.target.value),
+                    timeStamp: e.target.value
+                      ? new Date(e.target.value)
+                      : new Date(),
                   })
                 }
                 variant="primary"

@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
 import { Customer } from "../types/customer.types";
 import { Badge } from "@/components/Badge";
+import { TrashIcon } from "@heroicons/react/20/solid";
 
 interface CustomerDetailsDrawerProps {
   isOpen: boolean;
@@ -372,7 +373,7 @@ export const CustomerDetailsDrawer = ({
         {/* Action buttons */}
         <div className="mt-8 flex justify-end space-x-3 border-t border-gray-200 pt-6">
           <Button variant="error" size="medium" onClick={handleDeleteClick}>
-            Delete Customer
+            <TrashIcon className="h-5 w-5 mr-1" />
           </Button>
           <Button variant="gray" size="medium" onClick={onClose}>
             Close
