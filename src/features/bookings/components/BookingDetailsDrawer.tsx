@@ -370,13 +370,15 @@ export const BookingDetailsDrawer = ({
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900">
                     $
-                    {(
-                      booking.totalAmount /
-                      calculateBookingDuration(
+                    {(() => {
+                      const duration = calculateBookingDuration(
                         booking.startDate,
                         booking.endDate
-                      )
-                    ).toFixed(2) || 0}
+                      );
+                      const actualDuration = duration + 1;
+                      if (actualDuration <= 0) return "0.00";
+                      return (booking.totalAmount / actualDuration).toFixed(2);
+                    })() || "0.00"}
                   </dd>
                 </div>
               </dl>
