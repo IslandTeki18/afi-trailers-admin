@@ -220,6 +220,8 @@ export const TrailerDetailsDrawer = ({
             </div>
           </div>
 
+          {extraContent ? extraContent : null}
+
           {/* Photos section */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Photos</h3>
@@ -232,105 +234,6 @@ export const TrailerDetailsDrawer = ({
               <p className="text-sm text-gray-500 mt-2">
                 {trailer.photos?.length || 0} photos available
               </p>
-            </div>
-          </div>
-
-          {/* Rental information section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Rental Information
-            </h3>
-            <div className="mt-4 border-t border-gray-200 pt-4">
-              <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 md:grid-cols-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Full Day Rate
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {formatCurrency(trailer.rentalPrices.fullDay)}
-                  </dd>
-                </div>
-                {trailer.rentalPrices.halfDay && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Half Day Rate
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {formatCurrency(trailer.rentalPrices.halfDay)}
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Delivery Fee
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {formatCurrency(trailer.deliveryFee)}
-                  </dd>
-                </div>
-                {trailer.weekendSurcharge && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">
-                      Weekend Surcharge
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      {formatCurrency(trailer.weekendSurcharge)}
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Service Types
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {trailer.serviceTypes.includes("full") && (
-                      <span className="mr-2 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Full Service
-                      </span>
-                    )}
-                    {trailer.serviceTypes.includes("self") && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                        Self Service
-                      </span>
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Insurance
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {trailer.insuranceRequired ? "Required" : "Optional"}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-
-          {/* Maintenance section */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Maintenance Information
-            </h3>
-            <div className="mt-4 border-t border-gray-200 pt-4">
-              <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Last Maintenance
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {formatDate(trailer.lastMaintenanceDate)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">
-                    Next Scheduled Maintenance
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {formatDate(trailer.nextScheduledMaintenance)}
-                  </dd>
-                </div>
-              </dl>
             </div>
           </div>
 
@@ -380,8 +283,6 @@ export const TrailerDetailsDrawer = ({
               </div>
             </div>
           )}
-
-          {extraContent ? extraContent : null}
 
           {/* Rental activity section */}
           <div>

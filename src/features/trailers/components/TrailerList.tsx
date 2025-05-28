@@ -224,6 +224,157 @@ export const TrailerList: React.FC<TrailerListProps> = ({
     );
   }
 
+  const renderDetailsTab = () => {
+    if (!selectedTrailer) return null;
+
+    return (
+      <div className="mt-4">
+        <div className="bg-white overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Rental Information */}
+            <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+              <h3 className="text-md font-medium text-gray-900 mb-3">
+                Rental Information
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs font-medium text-gray-500">
+                    Full Day Price
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    ${selectedTrailer.rentalPrices.fullDay.toFixed(2)}
+                  </p>
+                </div>
+                {selectedTrailer.rentalPrices.halfDay !== undefined && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500">
+                      Half Day Price
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      ${selectedTrailer.rentalPrices.halfDay.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-medium text-gray-500">
+                    Delivery Fee
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    ${selectedTrailer.deliveryFee.toFixed(2)}
+                  </p>
+                </div>
+                {selectedTrailer.weekendSurcharge !== undefined && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500">
+                      Weekend Surcharge
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      ${selectedTrailer.weekendSurcharge.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <h4 className="text-xs font-medium text-gray-500 mt-4 mb-1">
+                Service Types
+              </h4>
+              <div className="flex gap-2">
+                {selectedTrailer.serviceTypes.includes("full") && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Full Service
+                  </span>
+                )}
+                {selectedTrailer.serviceTypes.includes("self") && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Self Service
+                  </span>
+                )}
+              </div>
+
+              <h4 className="text-xs font-medium text-gray-500 mt-4 mb-1">
+                Insurance
+              </h4>
+              <p className="text-sm text-gray-900">
+                {selectedTrailer.insuranceRequired
+                  ? "Required"
+                  : "Not Required"}
+              </p>
+            </div>
+
+            {/* Status & Location */}
+            <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+              <h3 className="text-md font-medium text-gray-900 mb-3">
+                Status & Maintenance
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <p className="text-xs font-medium text-gray-500">
+                    Current Status
+                  </p>
+                  <div className="mt-1">
+                    <Badge
+                      variant={
+                        selectedTrailer.maintenanceStatus === "Operational"
+                          ? "success"
+                          : selectedTrailer.maintenanceStatus === "Maintenance"
+                          ? "warning"
+                          : "error"
+                      }
+                    >
+                      {selectedTrailer.maintenanceStatus}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500">
+                    Availability
+                  </p>
+                  <div className="mt-1">
+                    <Badge
+                      variant={
+                        selectedTrailer.availability.isAvailable
+                          ? "success"
+                          : "error"
+                      }
+                    >
+                      {selectedTrailer.availability.isAvailable
+                        ? "Available"
+                        : "Unavailable"}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500">
+                    Last Maintenance
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTrailer.lastMaintenanceDate
+                      ? new Date(
+                          selectedTrailer.lastMaintenanceDate
+                        ).toLocaleDateString()
+                      : "Not recorded"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500">
+                    Next Scheduled Maintenance
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTrailer.nextScheduledMaintenance
+                      ? new Date(
+                          selectedTrailer.nextScheduledMaintenance
+                        ).toLocaleDateString()
+                      : "Not scheduled"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render bookings section for the drawer
   const renderBookingsTab = () => {
     if (!selectedTrailer) return null;
@@ -488,7 +639,7 @@ export const TrailerList: React.FC<TrailerListProps> = ({
               </div>
 
               {activeTab === "details"
-                ? null
+                ? renderDetailsTab()
                 : activeTab === "bookings"
                 ? renderBookingsTab()
                 : renderUsageHistoryTab()}
