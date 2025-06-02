@@ -256,11 +256,9 @@ export const TrailerBookingCalendar: React.FC<TrailerBookingCalendarProps> = ({
 
   // Handle date selection to create a new booking
   const handleDateSelect = (selectInfo: any) => {
-    // If onAddBooking prop is provided, use that
     if (onAddBooking) {
       onAddBooking(selectInfo.start);
     } else {
-      // Otherwise, show the create booking modal
       setSelectedBookingDate(selectInfo.start);
       setShowCreateBookingModal(true);
     }

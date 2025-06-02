@@ -57,6 +57,10 @@ export const BookingPage = () => {
     getBookings();
   }, []);
 
+  useEffect(() => {
+    setFilteredBookings(getBookingsForStatus(activeTab));
+  }, [searchTerm, selectedSearchOption, activeTab, bookings]);
+
   // Create search options for AutoComplete component
   const searchOptions = useMemo(() => {
     const options: any[] = [];
@@ -152,10 +156,6 @@ export const BookingPage = () => {
 
     return result;
   };
-
-  useEffect(() => {
-    setFilteredBookings(getBookingsForStatus(activeTab));
-  }, [searchTerm, selectedSearchOption, activeTab, bookings]);
 
   const handleSearchOptionSelect = (option: { id: string; name: string }) => {
     setSelectedSearchOption(option.name ? option : null);

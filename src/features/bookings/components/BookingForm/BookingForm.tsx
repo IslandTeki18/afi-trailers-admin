@@ -122,7 +122,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   }, [initialValues]);
 
-  // Initialize date values with 8am timestamps
+  // Set initial booking data if no initial values are provided
   useEffect(() => {
     if (!initialValues) {
       const now = new Date();
@@ -138,10 +138,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         endDate: tomorrow,
       }));
     }
-  }, [initialValues]);
 
-  // Check for single day rental on load
-  useEffect(() => {
     if (initialValues && initialValues.startDate && initialValues.endDate) {
       const start = new Date(initialValues.startDate);
       const end = new Date(initialValues.endDate);
@@ -348,6 +345,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     return Object.keys(stepErrors).length === 0;
   };
 
+  // Validate rental period step
   const validateRentalPeriodStep = () => {
     const stepErrors: Record<string, string> = {};
 
@@ -403,7 +401,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       newErrors.endDate = "End date must be after start date";
     }
 
-    // Add availability check
+    if (bookingData.serviceType === "full") {
+      if (
+        !bookingData.deliveryAddress?.street ||
+        !bookingData.deliveryAddress?.city ||
+        !bookingData.deliveryAddress?.state ||
+        !bookingData.deliveryAddress?.zipCode
+      ) {
+        alert("Delivery address is required for full service bookings");
+        return false;
+      }
+    }
+
     if (selectedTrailerId && bookingData.startDate && bookingData.endDate) {
       if (!checkTrailerAvailability()) {
         newErrors.availability =
@@ -459,7 +468,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }
   };
 
-  // Data change handlers - these ensure data flows back to parent state
+  // Customer selection handler
   const handleCustomerSelect = (customerId: string) => {
     setSelectedCustomerId(customerId);
   };
