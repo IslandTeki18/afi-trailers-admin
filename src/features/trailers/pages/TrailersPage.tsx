@@ -189,7 +189,7 @@ export const TrailersPage = () => {
         </div>
       </div>
 
-      <div className="mt-4 bg-white rounded-lg shadow">
+      <div className="mt-4">
         <TrailerList
           onEditClick={handleEditClick}
           onAddClick={() => setIsAddModalOpen(true)}
