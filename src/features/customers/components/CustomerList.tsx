@@ -71,7 +71,7 @@ export const CustomerList: React.FC<CustomerListProps> = ({
   const tableData = displayCustomers.map((customer) => ({
     id: customer._id,
     name: `${customer.firstName} ${customer.lastName}${
-      customer.address?.city ? ` (${customer.address.city})` : ""
+      customer.address?.city ? ` (${customer.address.city}, ${customer.address.state})` : ""
     }`,
     email: `${customer.email}${
       customer.verificationStatus?.isEmailVerified ? " (Verified)" : ""

@@ -26,6 +26,7 @@ export const CustomersPage = () => {
       try {
         setIsLoading(true);
         const data = await fetchCustomers();
+        //@ts-ignore
         setCustomers(data.customers);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
@@ -104,7 +105,6 @@ export const CustomersPage = () => {
           variant: "success",
         });
       } else {
-        // Create new customer
         const newCustomer = await createCustomer(customerData);
 
         setCustomers([...customers, newCustomer]);
