@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Customer } from "../types/customer.types";
-import { format } from "date-fns";
-import { Table } from "@/components/Table";
 import { Input } from "@/components/Input";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import { CustomerCard } from "./CustomerCard";
 
 interface CustomerListProps {
   customers: Customer[];
@@ -18,8 +17,6 @@ export const CustomerList: React.FC<CustomerListProps> = ({
   onEditCustomer,
   onDeleteCustomer,
 }) => {
-  const [sortField, setSortField] = useState<keyof Customer>("lastName");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [searchTerm, setSearchTerm] = useState("");
 
   const filterCustomers = (customers: Customer[]): Customer[] => {
@@ -35,68 +32,12 @@ export const CustomerList: React.FC<CustomerListProps> = ({
     );
   };
 
-  const sortCustomers = (customers: Customer[]): Customer[] => {
-    return [...customers].sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortDirection === "asc"
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      if (aValue instanceof Date && bValue instanceof Date) {
-        return sortDirection === "asc"
-          ? aValue.getTime() - bValue.getTime()
-          : bValue.getTime() - aValue.getTime();
-      }
-
-      return 0;
-    });
-  };
-
-  const formatPhoneNumber = (phone: string) => {
-    if (!phone) return "";
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length !== 10) return phone;
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(
-      6
-    )}`;
-  };
-
-  const displayCustomers = sortCustomers(filterCustomers(customers));
-
-  // Convert customers to the format expected by the Table component
-  const tableData = displayCustomers.map((customer) => ({
-    id: customer._id,
-    name: `${customer.firstName} ${customer.lastName}${
-      customer.address?.city ? ` (${customer.address.city}, ${customer.address.state})` : ""
-    }`,
-    email: `${customer.email}${
-      customer.verificationStatus?.isEmailVerified ? " (Verified)" : ""
-    }`,
-    phone: formatPhoneNumber(customer.phoneNumber),
-    status: customer.accountStatus,
-    createdAt: customer.createdAt
-      ? format(new Date(customer.createdAt), "MMM d, yyyy")
-      : "-",
-  }));
-
-  // Define columns for the Table component
-  const columns = [
-    { header: "Name", accessor: "name" },
-    { header: "Email", accessor: "email" },
-    { header: "Phone", accessor: "phone" },
-    { header: "Status", accessor: "status" },
-    { header: "Created", accessor: "createdAt" },
-    { header: "Actions", accessor: "actions", isAction: true },
-  ];
+  const displayCustomers = filterCustomers(customers);
 
   return (
     <div className="flex flex-col">
       <div className="mb-4 flex justify-between items-center">
-        <div className="relative">
+        <div className="relative max-w-md w-full">
           <Input
             type="text"
             placeholder="Search customers..."
@@ -119,15 +60,43 @@ export const CustomerList: React.FC<CustomerListProps> = ({
         </div>
       </div>
 
-      <Table
-        title="Customer Management"
-        description="A list of all customers in your account"
-        data={tableData}
-        columns={columns}
-        variant="primary"
-        onView={(item) => onViewDetails(item.id)}
-        onEdit={(item) => onEditCustomer(item.id)}
-      />
+      {displayCustomers.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <h3 className="mt-2 text-lg font-medium text-gray-900">
+            No customers found
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchTerm
+              ? "Try adjusting your search terms."
+              : "Add your first customer to get started."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {displayCustomers.map((customer) => (
+            <CustomerCard
+              key={customer._id}
+              customer={customer}
+              onView={onViewDetails}
+              onEdit={onEditCustomer}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
