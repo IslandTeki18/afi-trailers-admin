@@ -50,7 +50,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           {/* Using the Avatar component */}
           <Avatar
             alt={`${customer.firstName} ${customer.lastName}`}
-            variant="primary"
+            variant="base"
             size="sm"
           />
 
@@ -147,8 +147,8 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
         {/* Actions */}
         <div className="mt-4 flex gap-2">
           <Button
-            variant="primary"
-            size="small"
+            variant="base"
+            size="medium"
             onClick={() => onView(customer._id || "")}
             className="flex-1 flex items-center justify-center gap-1"
           >
@@ -157,7 +157,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           </Button>
           <Button
             variant="gray"
-            size="small"
+            size="medium"
             onClick={() => onEdit(customer._id || "")}
             className="flex-1 flex items-center justify-center gap-1"
           >
