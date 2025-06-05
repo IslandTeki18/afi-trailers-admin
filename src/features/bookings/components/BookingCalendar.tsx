@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { format, isWithinInterval } from "date-fns";
 import { Button } from "../../../components/Button";
-import { Booking, BookingStatus } from "../types/booking.types";
+import { Booking, BookingStatus, TimeBlock } from "../types/booking.types";
 import BookingDetailsPanel from "./BookingDetailsPanel";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
@@ -24,8 +24,11 @@ const statusColors: Record<BookingStatus, string> = {
 
 interface BookingCalendarProps {
   bookings: Booking[];
+  timeBlocks?: TimeBlock[];
   onAddBooking?: () => void;
   onViewBooking?: (bookingId: string) => void;
+  onAddTimeBlock?: () => void; // Add this line
+  onViewTimeBlock?: (timeBlockId: string) => void; // Add this line
   variant?:
     | "primary"
     | "secondary"
@@ -48,8 +51,11 @@ interface SelectedEvent {
 
 export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   bookings = [],
+  timeBlocks = [],
   onAddBooking,
   onViewBooking,
+  onAddTimeBlock,
+  onViewTimeBlock,
   variant = "primary",
   selectedDate = new Date(),
   onDateSelect,
@@ -64,40 +70,73 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
   // Convert bookings to FullCalendar events
-  const calendarEvents = bookings.map((booking) => {
-    const startDate = new Date(booking.startDate);
-    startDate.setHours(0, 0, 0, 0);
+  const calendarEvents = [
+    ...bookings.map((booking) => {
+      const startDate = new Date(booking.startDate);
+      startDate.setHours(0, 0, 0, 0);
 
-    const endDate = new Date(booking.endDate);
+      const endDate = new Date(booking.endDate);
 
-    const displayEndDate = new Date(endDate);
-    displayEndDate.setDate(displayEndDate.getDate() + 1);
-    displayEndDate.setHours(0, 0, 0, 0);
+      const displayEndDate = new Date(endDate);
+      displayEndDate.setDate(displayEndDate.getDate() + 1);
+      displayEndDate.setHours(0, 0, 0, 0);
 
-    return {
-      id: booking._id,
-      title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
-      start: startDate,
-      end: displayEndDate,
-      allDay: true,
-      backgroundColor: statusColors[booking.status],
-      borderColor: statusColors[booking.status],
-      extendedProps: {
-        status: booking.status,
-        customerEmail: booking.customer.email,
-        customerPhone: booking.customer.phoneNumber,
-        totalAmount: booking.totalAmount,
-        depositAmount: booking.depositAmount,
-        pickupDate: format(startDate, "MMM d, yyyy"),
-        lastDayOfUse: format(endDate, "MMM d, yyyy"),
-        returnDate: format(displayEndDate, "MMM d, yyyy"),
-        description: `Pickup: ${format(startDate, "MMM d")} | Return: ${format(
-          endDate,
-          "MMM d"
-        )} | Status: ${booking.status}`,
-      },
-    };
-  });
+      return {
+        id: booking._id,
+        title: `${booking.trailerName} - ${booking.customer.firstName} ${booking.customer.lastName}`,
+        start: startDate,
+        end: displayEndDate,
+        allDay: true,
+        backgroundColor: statusColors[booking.status],
+        borderColor: statusColors[booking.status],
+        extendedProps: {
+          status: booking.status,
+          customerEmail: booking.customer.email,
+          customerPhone: booking.customer.phoneNumber,
+          totalAmount: booking.totalAmount,
+          depositAmount: booking.depositAmount,
+          pickupDate: format(startDate, "MMM d, yyyy"),
+          lastDayOfUse: format(endDate, "MMM d, yyyy"),
+          returnDate: format(displayEndDate, "MMM d, yyyy"),
+          description: `Pickup: ${format(
+            startDate,
+            "MMM d"
+          )} | Return: ${format(endDate, "MMM d")} | Status: ${booking.status}`,
+        },
+      };
+    }),
+    ...(timeBlocks || []).map((block) => {
+      const startDate = new Date(block.startDate);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(block.endDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Add a day to make the block inclusive
+      const displayEndDate = new Date(endDate);
+      displayEndDate.setDate(displayEndDate.getDate() + 1);
+
+      return {
+        id: `block-${block._id}`,
+        title: `🚫 ${block.title} ${
+          block.trailerName ? `- ${block.trailerName}` : "(All Trailers)"
+        }`,
+        start: startDate,
+        end: displayEndDate,
+        allDay: true,
+        backgroundColor: block.color || "#FF5733",
+        borderColor: block.color || "#FF5733",
+        classNames: ["time-block-event"],
+        extendedProps: {
+          isTimeBlock: true,
+          timeBlockId: block._id,
+          reason: block.reason,
+          affectsAllTrailers: block.affectsAllTrailers,
+          trailerName: block.trailerName,
+        },
+      };
+    }),
+  ];
 
   // Update the month title when the view changes
   useEffect(() => {
@@ -197,6 +236,13 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   };
 
   const handleEventClick = (clickInfo: any) => {
+    if (clickInfo.event.extendedProps.isTimeBlock) {
+      if (onViewTimeBlock) {
+        onViewTimeBlock(clickInfo.event.extendedProps.timeBlockId);
+      }
+      return;
+    }
+
     const event = {
       id: clickInfo.event.id,
       title: clickInfo.event.title,
@@ -207,7 +253,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
     setSelectedEvents([event]);
     setIsDetailsOpen(true);
-
     setLastSelectedDate(new Date(clickInfo.event.start));
   };
 

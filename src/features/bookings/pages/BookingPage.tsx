@@ -313,7 +313,6 @@ export const BookingPage = () => {
           onDeleteBooking={handleDeleteBooking}
         />
       )}
-      
     </div>
   );
 };

@@ -1,35 +1,53 @@
-import { arePeriodsOverlapping } from "./arePeriodsOverlapping";
-import { Booking } from "../types/booking.types";
+import { Booking, TimeBlock } from "../types/booking.types";
 
-/**
- * Check if a trailer is available for the specified date range
- */
 export const isTrailerAvailable = (
   trailerId: string,
   startDate: Date,
   endDate: Date,
-  existingBookings: Booking[],
-  currentBookingId?: string // Pass this to exclude the current booking when updating
+  existingBookings: Booking[] = [],
+  currentBookingId?: string,
+  timeBlocks: TimeBlock[] = []
 ): boolean => {
-  // Filter bookings for the selected trailer
-  const trailerBookings = existingBookings.filter(
-    (booking) =>
-      booking.trailerId === trailerId && booking._id !== currentBookingId
-  );
+  const start = new Date(startDate);
+  const end = new Date(endDate);
 
-  // Check for overlaps with any existing booking
-  for (const booking of trailerBookings) {
+  for (const booking of existingBookings) {
+    if (currentBookingId && booking._id === currentBookingId) {
+      continue;
+    }
+
+    if (booking.trailerId !== trailerId) {
+      continue;
+    }
+
+    const bookingStart = new Date(booking.startDate);
+    const bookingEnd = new Date(booking.endDate);
+
     if (
-      arePeriodsOverlapping(
-        startDate,
-        endDate,
-        new Date(booking.startDate),
-        new Date(booking.endDate)
-      )
+      (start <= bookingEnd && start >= bookingStart) ||
+      (end >= bookingStart && end <= bookingEnd) ||
+      (start <= bookingStart && end >= bookingEnd)
     ) {
-      return false; // Found an overlap
+      return false;
     }
   }
 
-  return true; // No overlaps found
+  for (const block of timeBlocks) {
+    if (!block.isActive) continue;
+
+    if (block.affectsAllTrailers || block.trailerId === trailerId) {
+      const blockStart = new Date(block.startDate);
+      const blockEnd = new Date(block.endDate);
+
+      if (
+        (start <= blockEnd && start >= blockStart) ||
+        (end >= blockStart && end <= blockEnd) ||
+        (start <= blockStart && end >= blockEnd)
+      ) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 };

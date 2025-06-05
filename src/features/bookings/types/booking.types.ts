@@ -22,3 +22,20 @@ export interface Booking {
   totalAmount: number;
   depositAmount: number;
 }
+
+
+export interface TimeBlock {
+  _id?: string;
+  title: string;
+  reason: string;
+  startDate: Date;
+  endDate: Date;
+  trailerId?: string;
+  trailerName?: string;
+  affectsAllTrailers: boolean;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  color?: string;
+  isActive: boolean;
+}

@@ -2,14 +2,17 @@ import { useState, useEffect } from "react";
 import { Button } from "../../../components/Button";
 import { BookingCalendar } from "../components/BookingCalendar";
 import { CreateBookingModal } from "../components/modals/CreateBookingModal";
+import { TimeBlockModal } from "../components/modals/TimeBlockModal";
 import { BookingDetailsDrawer } from "../components/BookingDetailsDrawer";
-import { Booking, BookingStatus } from "../types/booking.types";
+import { Booking, BookingStatus, TimeBlock } from "../types/booking.types";
 import { useNavigate } from "react-router-dom";
 import { fetchTrailers } from "@/features/trailers/api/fetchTrailers";
 import { fetchCustomers } from "@/features/customers/api/fetchCustomers";
 import { fetchCustomerById } from "@/features/customers/api/fetchCustomerById";
 import { fetchTrailerById } from "@/features/trailers/api/fetchTrailerById";
 import { fetchBookings } from "../api/fetchBookings";
+import { createTimeBlock } from "../api/createTimeBlock";
+import { fetchTimeBlocks } from "../api/fetchTimeBlocks";
 import {
   createBooking,
   CreateBookingPayload,
@@ -31,6 +34,12 @@ export const BookingCalendarPage = () => {
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
+  const [isTimeBlockModalOpen, setIsTimeBlockModalOpen] = useState(false);
+  const [selectedTimeBlock, setSelectedTimeBlock] = useState<
+    TimeBlock | undefined
+  >(undefined);
+
 
   useEffect(() => {
     const fetchTrailersData = async () => {
@@ -125,6 +134,23 @@ export const BookingCalendarPage = () => {
     };
 
     loadCustomers();
+  }, []);
+
+  useEffect(() => {
+    const getTimeBlocks = async () => {
+      try {
+        const response = await fetchTimeBlocks();
+        setTimeBlocks(response);
+      } catch (error) {
+        console.log("Failed to fetch time blocks:", error);
+        addToast({
+          message: "Failed to load time blocks",
+          variant: "error",
+        });
+      }
+    };
+
+    getTimeBlocks();
   }, []);
 
   // Handle booking deletion
@@ -260,8 +286,39 @@ export const BookingCalendarPage = () => {
     setIsBookingDetailsOpen(false);
   };
 
+  // Handle selecting a date on the calendar
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+  };
+  
+  const handleTimeBlockSubmit = async (timeBlock: TimeBlock) => {
+    try {
+      const newTimeBlock = await createTimeBlock(timeBlock);
+
+      if (timeBlock._id) {
+        setTimeBlocks((prev) =>
+          prev.map((tb) => (tb._id === timeBlock._id ? newTimeBlock : tb))
+        );
+      } else {
+        setTimeBlocks((prev) => [...prev, newTimeBlock]);
+      }
+
+      setIsTimeBlockModalOpen(false);
+      setSelectedTimeBlock(undefined);
+
+      addToast({
+        message: `Time block ${
+          timeBlock._id ? "updated" : "created"
+        } successfully`,
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Error saving time block:", error);
+      addToast({
+        message: "Failed to save time block",
+        variant: "error",
+      });
+    }
   };
 
   return (
@@ -273,6 +330,9 @@ export const BookingCalendarPage = () => {
             View and manage your bookings in calendar format
           </p>
         </div>
+        <Button variant="base" onClick={() => setIsTimeBlockModalOpen(true)}>
+          Block Calendar Time
+        </Button>
         <Button variant="base" onClick={() => navigate("/bookings")}>
           View Booking Management
         </Button>
@@ -304,6 +364,17 @@ export const BookingCalendarPage = () => {
         trailers={trailers}
         customers={customers}
         existingBookings={bookings}
+      />
+      <TimeBlockModal
+        isOpen={isTimeBlockModalOpen}
+        onClose={() => {
+          setIsTimeBlockModalOpen(false);
+          setSelectedTimeBlock(undefined);
+        }}
+        onSubmit={handleTimeBlockSubmit}
+        initialData={selectedTimeBlock}
+        trailers={trailers}
+        isEditing={!!selectedTimeBlock?._id}
       />
     </div>
   );
