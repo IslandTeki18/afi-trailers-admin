@@ -25,8 +25,13 @@ export const createTimeBlock = async (
       );
       return response.data;
     } else {
-      // Create new time block
-      const response = await axiosInstance.post("/time-blocks", formattedData);
+      const token = localStorage.getItem("atr_auth_token");
+      const headers = {
+        Authorization: token ? `Bearer ${token}` : "",
+      };
+      const response = await axiosInstance.post("/time-blocks", formattedData, {
+        headers,
+      });
       return response.data;
     }
   } catch (error) {
